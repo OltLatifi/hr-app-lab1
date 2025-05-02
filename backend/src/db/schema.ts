@@ -10,7 +10,7 @@ import {
 } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
-export const users = pgTable("User", {
+export const users = pgTable("user", {
   id: integer('id').primaryKey().generatedAlwaysAsIdentity(),
   name: varchar('name', { length: 255 }).notNull(),
   email: varchar('email', { length: 255 }).notNull().unique(),
@@ -18,7 +18,7 @@ export const users = pgTable("User", {
 });
 
 // Any because it references itself
-export const employees: any = pgTable('Employee', {
+export const employees: any = pgTable('employee', {
   id: serial('id').primaryKey(),
   firstName: varchar('first_name', { length: 255 }).notNull(),
   lastName: varchar('last_name', { length: 255 }).notNull(),
@@ -74,7 +74,7 @@ export const employeesRelations = relations(employees, ({ one, many }) => ({
 }));
 
 // Departments
-export const departments = pgTable('Department', {
+export const departments = pgTable('department', {
   departmentId: serial('department_id').primaryKey(),
   departmentName: varchar('department_name', { length: 255 }).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
@@ -86,7 +86,7 @@ export const departmentsRelations = relations(departments, ({ many }) => ({
 }));
 
 // JobTitles
-export const jobTitles = pgTable('JobTitle', {
+export const jobTitles = pgTable('jobtitle', {
   id: serial('id').primaryKey(),
   name: varchar('name', { length: 255 }).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
@@ -98,7 +98,7 @@ export const jobTitlesRelations = relations(jobTitles, ({ many }) => ({
 }));
 
 // EmploymentStatuses
-export const employmentStatuses = pgTable('EmploymentStatus', {
+export const employmentStatuses = pgTable('employmentstatus', {
   id: serial('id').primaryKey(),
   statusName: varchar('status_name', { length: 50 }).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
@@ -113,7 +113,7 @@ export const employmentStatusesRelations = relations(
 );
 
 // Attendance
-export const attendance = pgTable('Attendance', {
+export const attendance = pgTable('attendance', {
   id: serial('id').primaryKey(),
   employeeId: integer('employee_id')
     .notNull()
@@ -134,7 +134,7 @@ export const attendanceRelations = relations(attendance, ({ one }) => ({
 }));
 
 // LeaveRequests
-export const leaveRequests = pgTable('LeaveRequest', {
+export const leaveRequests = pgTable('leaverequest', {
   id: serial('id').primaryKey(),
   employeeId: integer('employee_id')
     .notNull()
@@ -161,7 +161,7 @@ export const leaveRequestsRelations = relations(leaveRequests, ({ one }) => ({
 }));
 
 // LeaveTypes
-export const leaveTypes = pgTable('LeaveType', {
+export const leaveTypes = pgTable('leavetype', {
   id: serial('id').primaryKey(),
   typeName: varchar('type_name', { length: 50 }).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
@@ -173,7 +173,7 @@ export const leaveTypesRelations = relations(leaveTypes, ({ many }) => ({
 }));
 
 // Payroll
-export const payroll = pgTable('Payroll', {
+export const payroll = pgTable('payroll', {
   id: serial('id').primaryKey(),
   employeeId: integer('employee_id')
     .notNull()
@@ -194,7 +194,7 @@ export const payrollRelations = relations(payroll, ({ one }) => ({
 }));
 
 // Benefits
-export const benefits = pgTable('Benefit', {
+export const benefits = pgTable('benefit', {
   id: serial('id').primaryKey(),
   name: varchar('name', { length: 255 }).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
@@ -207,7 +207,7 @@ export const benefitsRelations = relations(benefits, ({ many }) => ({
 
 // EmployeeBenefits (Linking Table)
 export const employeeBenefits = pgTable(
-  'EmployeeBenefit',
+  'employeebenefit',
   {
     id: serial('id').primaryKey(),
     employeeId: integer('employee_id')
@@ -237,7 +237,7 @@ export const employeeBenefitsRelations = relations(
 );
 
 // PerformanceReviews
-export const performanceReviews = pgTable('PerformanceReview', {
+export const performanceReviews = pgTable('performancereview', {
   id: serial('id').primaryKey(),
   employeeId: integer('employee_id')
     .notNull()
@@ -259,7 +259,7 @@ export const performanceReviewsRelations = relations(
 );
 
 // TrainingPrograms
-export const trainingPrograms = pgTable('TrainingProgram', {
+export const trainingPrograms = pgTable('trainingprogram', {
   id: serial('id').primaryKey(),
   name: varchar('name', { length: 255 }).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
@@ -274,7 +274,7 @@ export const trainingProgramsRelations = relations(
 );
 
 export const employeeTraining = pgTable(
-  'EmployeeTraining',
+  'employeetraining',
   {
     employeeTrainingId: serial('employee_training_id').primaryKey(),
     employeeId: integer('employee_id')
@@ -314,7 +314,7 @@ export const usersRelations = relations(users, ({ one }) => ({
   }),
 }));
 
-export const roles = pgTable('Role', {
+export const roles = pgTable('role', {
   id: serial('id').primaryKey(),
   name: varchar('name', { length: 50 }).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),

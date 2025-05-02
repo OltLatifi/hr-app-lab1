@@ -1,6 +1,6 @@
 import apiClient from '../lib/api-client';
-import { RegisterFormValues } from '../pages/register-page';
-import { LoginFormValues } from '../pages/login-page';
+import { RegisterFormValues } from '../pages/auth/register-page';
+import { LoginFormValues } from '../pages/auth/login-page';
 import { AxiosError } from 'axios';
 
 interface User {

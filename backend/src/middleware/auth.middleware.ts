@@ -12,8 +12,6 @@ declare global {
 }
 
 export const authenticateToken = async (req: Request, res: Response, next: NextFunction) => {
-    console.log('Authenticating token');
-    console.log('Cookies:', req.cookies);
     const token = req.cookies[authConfig.cookies.access];
 
     if (!token) {
