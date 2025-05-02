@@ -15,6 +15,7 @@ const Navbar: React.FC = () => {
                 </div>
                 <div className="space-x-4">
                     <Link to="/departments">Departments</Link>
+                    <Link to="/jobtitles">Job Titles</Link>
                     <Link to="/employees">Employees</Link>
                     <Link to="/leave-requests">Leave Requests</Link>
                     <button onClick={handleLogout}>Logout</button>

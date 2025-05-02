@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { createDepartment, CreateDepartmentPayload } from '@/services/departmentService';
+import { createJobTitle, CreateJobTitlePayload } from '@/services/jobtitleService';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -17,29 +17,28 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 
-
 const formSchema = z.object({
-    departmentName: z.string().min(1, { message: "Department name is required." }).max(255, { message: "Department name cannot exceed 255 characters." }),
+    name: z.string().min(1, { message: "Job title name is required." }).max(255, { message: "Job title name cannot exceed 255 characters." }),
 });
 
-export type DepartmentFormValues = z.infer<typeof formSchema>;
+export type JobTitleFormValues = z.infer<typeof formSchema>;
 
-const DepartmentCreatePage: React.FC = () => {
+const JobTitleCreatePage: React.FC = () => {
     const navigate = useNavigate();
     const queryClient = useQueryClient();
 
-    const form = useForm<DepartmentFormValues>({
+    const form = useForm<JobTitleFormValues>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            departmentName: '',
+            name: '',
         },
     });
 
     const mutation = useMutation({
-        mutationFn: (data: CreateDepartmentPayload) => createDepartment(data),
+        mutationFn: (data: CreateJobTitlePayload) => createJobTitle(data),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['departments'] });
-            navigate('/departments');
+            queryClient.invalidateQueries({ queryKey: ['jobtitles'] });
+            navigate('/jobtitles');
         },
         onError: (error: any) => {
             console.error('Create department mutation error:', error);
@@ -48,7 +47,7 @@ const DepartmentCreatePage: React.FC = () => {
 
     const isLoading = mutation.isPending;
 
-    const onSubmit = (values: DepartmentFormValues) => {
+    const onSubmit = (values: JobTitleFormValues) => {
         mutation.mutate(values);
     };
 
@@ -56,31 +55,31 @@ const DepartmentCreatePage: React.FC = () => {
         <div className="flex justify-center items-center p-4 mt-8">
             <Card className="w-full max-w-lg">
                 <CardHeader>
-                    <CardTitle>Create New Department</CardTitle>
-                    <CardDescription>Enter the name for the new department.</CardDescription>
+                    <CardTitle>Create New Job Title</CardTitle>
+                    <CardDescription>Enter the name for the new job title.</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <Form {...form}>
                         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                             <FormField
                                 control={form.control}
-                                name="departmentName"
+                                name="name"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Department Name</FormLabel>
+                                        <FormLabel>Job Title</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="e.g., Human Resources" {...field} disabled={isLoading} />
+                                            <Input placeholder="e.g., Software Engineer" {...field} disabled={isLoading} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
                                 )}
                             />
                             <div className="flex justify-end space-x-2">
-                                <Button variant="outline" type="button" onClick={() => navigate('/departments')} disabled={isLoading}>
+                                <Button variant="outline" type="button" onClick={() => navigate('/jobtitles')} disabled={isLoading}>
                                     Cancel
                                 </Button>
                                 <Button type="submit" disabled={isLoading}>
-                                    {isLoading ? 'Creating...' : 'Create Department'}
+                                    {isLoading ? 'Creating...' : 'Create Job Title'}
                                 </Button>
                             </div>
                         </form>
@@ -91,4 +90,4 @@ const DepartmentCreatePage: React.FC = () => {
     );
 };
 
-export default DepartmentCreatePage; 
+export default JobTitleCreatePage; 

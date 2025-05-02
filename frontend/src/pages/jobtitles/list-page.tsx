@@ -6,11 +6,6 @@ import {
     useQueryClient,
 } from '@tanstack/react-query';
 import {
-    getDepartments,
-    deleteDepartment,
-    DepartmentResponse,
-} from '@/services/departmentService';
-import {
     Table,
     TableBody,
     TableCell,
@@ -35,27 +30,28 @@ import {
     CardTitle,
 } from "@/components/ui/card";
 import { Link } from 'react-router-dom';
+import { deleteJobTitle, getJobTitles, JobTitleResponse } from '@/services/jobtitleService';
 
-const DepartmentListPage: React.FC = () => {
+const JobTitleListPage: React.FC = () => {
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-    const [departmentToDelete, setDepartmentToDelete] = useState<DepartmentResponse | null>(null);
+    const [jobTitleToDelete, setJobTitleToDelete] = useState<JobTitleResponse | null>(null);
 
     const queryClient = useQueryClient();
 
     const {
-        data: departments = [],
+        data: jobTitles = [],
         isLoading,
         isError,
         error
-    } = useQuery<DepartmentResponse[], Error>({
-        queryKey: ['departments'],
-        queryFn: getDepartments,
+    } = useQuery<JobTitleResponse[], Error>({
+        queryKey: ['jobtitles'],
+        queryFn: getJobTitles,
     });
 
     const deleteMutation = useMutation({
-        mutationFn: deleteDepartment,
+        mutationFn: deleteJobTitle,
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['departments'] });
+            queryClient.invalidateQueries({ queryKey: ['jobtitles'] });
             closeDeleteModal();
         },
         onError: (err: Error) => {
@@ -63,19 +59,19 @@ const DepartmentListPage: React.FC = () => {
         },
     });
 
-    const openDeleteModal = (department: DepartmentResponse) => {
-        setDepartmentToDelete(department);
+    const openDeleteModal = (jobTitle: JobTitleResponse) => {
+        setJobTitleToDelete(jobTitle);
         setIsModalOpen(true);
     };
 
     const closeDeleteModal = () => {
-        setDepartmentToDelete(null);
+        setJobTitleToDelete(null);
         setIsModalOpen(false);
     };
 
     const handleDeleteConfirm = () => {
-        if (!departmentToDelete) return;
-        deleteMutation.mutate(departmentToDelete.departmentId);
+        if (!jobTitleToDelete) return;
+        deleteMutation.mutate(jobTitleToDelete.id);
     };
 
     const renderTableContent = () => {
@@ -83,7 +79,7 @@ const DepartmentListPage: React.FC = () => {
             return (
                 <TableRow>
                     <TableCell colSpan={3} className="h-24 text-center">
-                        Loading departments...
+                        Loading job titles...
                     </TableCell>
                 </TableRow>
             );
@@ -93,37 +89,37 @@ const DepartmentListPage: React.FC = () => {
             return (
                 <TableRow>
                     <TableCell colSpan={3} className="h-24 text-center text-destructive">
-                        Error loading departments: {error?.message || 'Unknown error'}
+                        Error loading job titles: {error?.message || 'Unknown error'}
                     </TableCell>
                 </TableRow>
             );
         }
 
-        if (!departments || departments.length === 0) {
+        if (!jobTitles || jobTitles.length === 0) {
             return (
                 <TableRow>
                     <TableCell colSpan={3} className="h-24 text-center">
-                        No departments found.
+                        No job titles found.
                     </TableCell>
                 </TableRow>
             );
         }
 
-        return departments.map((dept) => (
-            <TableRow key={dept.departmentId}>
-                <TableCell className="font-medium w-[100px]">{dept.departmentId}</TableCell>
-                <TableCell>{dept.departmentName}</TableCell>
+        return jobTitles.map((jobTitle) => (
+            <TableRow key={jobTitle.id}>
+                <TableCell className="font-medium w-[100px]">{jobTitle.id}</TableCell>
+                <TableCell>{jobTitle.name}</TableCell>
                 <TableCell className="text-right space-x-2">
                     <Button asChild variant="outline" size="sm">
-                        <Link to={`/departments/edit/${dept.departmentId}`}>Edit</Link>
+                        <Link to={`/jobtitles/edit/${jobTitle.id}`}>Edit</Link>
                     </Button>
                     <Button
                         variant="destructive"
                         size="sm"
-                        onClick={() => openDeleteModal(dept)}
-                        disabled={deleteMutation.isPending && deleteMutation.variables === dept.departmentId}
+                        onClick={() => openDeleteModal(jobTitle)}
+                        disabled={deleteMutation.isPending && deleteMutation.variables === jobTitle.id}
                     >
-                        {deleteMutation.isPending && deleteMutation.variables === dept.departmentId ? 'Deleting...' : 'Delete'}
+                        {deleteMutation.isPending && deleteMutation.variables === jobTitle.id ? 'Deleting...' : 'Delete'}
                     </Button>
                 </TableCell>
             </TableRow>
@@ -135,13 +131,13 @@ const DepartmentListPage: React.FC = () => {
             <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <div>
-                        <CardTitle className="text-2xl font-bold">Departments</CardTitle>
+                        <CardTitle className="text-2xl font-bold">Job Titles</CardTitle>
                         <CardDescription>
-                            View and manage your company's departments.
+                            View and manage your company's job titles.
                         </CardDescription>
                     </div>
                     <Button asChild>
-                        <Link to="/departments/add">Add New Department</Link>
+                        <Link to="/jobtitles/add">Add New Job Title</Link>
                     </Button>
                 </CardHeader>
                 <CardContent>
@@ -165,7 +161,7 @@ const DepartmentListPage: React.FC = () => {
                     <DialogHeader>
                         <DialogTitle>Confirm Deletion</DialogTitle>
                         <DialogDescription>
-                            Are you sure you want to delete the department "{departmentToDelete?.departmentName}"?
+                            Are you sure you want to delete the job title "{jobTitleToDelete?.name}"?
                             This action cannot be undone.
                         </DialogDescription>
                     </DialogHeader>
@@ -187,4 +183,4 @@ const DepartmentListPage: React.FC = () => {
     );
 };
 
-export default DepartmentListPage; 
+export default JobTitleListPage; 

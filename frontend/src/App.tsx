@@ -10,6 +10,11 @@ import ProtectedRoute from './components/protected-route';
 import DepartmentListPage from './pages/department/list-page';
 import DepartmentAddPage from './pages/department/create-page';
 import DepartmentUpdatePage from './pages/department/update-page';
+
+import JobTitleListPage from './pages/jobtitles/list-page';
+import JobTitleAddPage from './pages/jobtitles/create-page';
+import JobTitleUpdatePage from './pages/jobtitles/update-page';
+
 const HomePage: React.FC = () => {
   return (
     <div>
@@ -34,6 +39,9 @@ function AppContent() {
             <Route path="/departments" element={<DepartmentListPage />} />
             <Route path="/departments/add" element={<DepartmentAddPage />} />
             <Route path="/departments/edit/:id" element={<DepartmentUpdatePage />} />
+            <Route path="/jobtitles" element={<JobTitleListPage />} />
+            <Route path="/jobtitles/add" element={<JobTitleAddPage />} />
+            <Route path="/jobtitles/edit/:id" element={<JobTitleUpdatePage />} />
           </Route>
 
           {/* Fallback Route */}
