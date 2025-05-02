@@ -15,6 +15,11 @@ import JobTitleListPage from './pages/jobtitles/list-page';
 import JobTitleAddPage from './pages/jobtitles/create-page';
 import JobTitleUpdatePage from './pages/jobtitles/update-page';
 
+import EmploymentStatusListPage from './pages/employmentstatus/list-page';
+import EmploymentStatusAddPage from './pages/employmentstatus/create-page';
+import EmploymentStatusUpdatePage from './pages/employmentstatus/update-page';
+
+
 const HomePage: React.FC = () => {
   return (
     <div>
@@ -39,9 +44,14 @@ function AppContent() {
             <Route path="/departments" element={<DepartmentListPage />} />
             <Route path="/departments/add" element={<DepartmentAddPage />} />
             <Route path="/departments/edit/:id" element={<DepartmentUpdatePage />} />
+
             <Route path="/jobtitles" element={<JobTitleListPage />} />
             <Route path="/jobtitles/add" element={<JobTitleAddPage />} />
             <Route path="/jobtitles/edit/:id" element={<JobTitleUpdatePage />} />
+
+            <Route path="/employment-statuses" element={<EmploymentStatusListPage />} />
+            <Route path="/employment-statuses/add" element={<EmploymentStatusAddPage />} />
+            <Route path="/employment-statuses/edit/:id" element={<EmploymentStatusUpdatePage />} />
           </Route>
 
           {/* Fallback Route */}

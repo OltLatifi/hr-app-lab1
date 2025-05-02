@@ -10,6 +10,7 @@ import { server } from './config/config';
 import authRouter from './routes/auth.routes';
 import departmentRouter from './routes/department.routes';
 import jobTitleRouter from './routes/jobtitle.route';
+import employmentStatusRouter from './routes/employmentstatus.route';
 
 export const application = express();
 export let httpServer: ReturnType<typeof http.createServer>;
@@ -28,6 +29,7 @@ export const Main = () => {
     application.use('/auth', authRouter);
     application.use('/departments', departmentRouter);
     application.use('/jobtitles', jobTitleRouter);
+    application.use('/employmentstatuses', employmentStatusRouter);
     application.use(routeNotFound);
 
     httpServer = http.createServer(application);
