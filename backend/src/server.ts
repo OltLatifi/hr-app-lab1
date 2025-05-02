@@ -1,6 +1,7 @@
 import http from 'http';
 import express from 'express';
 import './config/logging';
+import cookieParser from 'cookie-parser';
 
 import { corsHandler } from './middleware/corsHandler';
 import { loggingHandler } from './middleware/loggingHandler';
@@ -14,6 +15,7 @@ export let httpServer: ReturnType<typeof http.createServer>;
 export const Main = () => {
     application.use(express.urlencoded({ extended: true }));
     application.use(express.json());
+    application.use(cookieParser());
     application.use(loggingHandler);
     application.use(corsHandler);
 

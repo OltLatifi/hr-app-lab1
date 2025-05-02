@@ -4,11 +4,11 @@ import {
     generateRefreshToken, 
     comparePassword, 
     verifyRefreshToken,
-    AuthTokenPayload,
-    hashPassword
+    AuthTokenPayload
 } from '../utils/auth.utils';
 import { createUser, findUserByEmailWithPassword } from '../services/user.service';
 import { authConfig } from '../config/auth.config';
+import { authenticateToken } from '../middleware/auth.middleware';
 
 const authRouter: Router = express.Router();
 
@@ -32,6 +32,14 @@ const setAuthCookies = (res: Response, accessToken: string, refreshToken: string
         maxAge: authConfig.expiration.refresh * 1000,
     });
 };
+
+// --- Status Route ---
+authRouter.get('/status', authenticateToken, (req: Request, res: Response) => {
+    if (!req.user) {
+        return res.status(401).json({ message: 'Not authenticated (status check).' });
+    }
+    res.status(200).json({ user: req.user });
+});
 
 // --- Login Route ---
 authRouter.post('/login', async (req: Request, res: Response) => {
@@ -90,17 +98,9 @@ authRouter.post('/refresh', async (req: Request, res: Response) => {
         const newAccessTokenPayload: AuthTokenPayload = { userId: payload.userId };
         const newAccessToken = generateAccessToken(newAccessTokenPayload);
 
-        res.cookie(authConfig.cookies.access, newAccessToken, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'lax',
-            path: '/',
-            maxAge: authConfig.expiration.access * 1000,
-        });
-        
         const newRefreshToken = generateRefreshToken(newAccessTokenPayload);
         setAuthCookies(res, newAccessToken, newRefreshToken);
-
+        
         res.status(200).json({ message: 'Access token refreshed successfully.'});
 
     } catch (error) {
