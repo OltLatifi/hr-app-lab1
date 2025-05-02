@@ -7,6 +7,7 @@ import {
   timestamp,
   primaryKey,
   text,
+  AnyPgColumn,
 } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
@@ -18,7 +19,7 @@ export const users = pgTable("user", {
 });
 
 // Any because it references itself
-export const employees: any = pgTable('employee', {
+export const employees = pgTable('employee', {
   id: serial('id').primaryKey(),
   firstName: varchar('first_name', { length: 255 }).notNull(),
   lastName: varchar('last_name', { length: 255 }).notNull(),
@@ -32,7 +33,7 @@ export const employees: any = pgTable('employee', {
   departmentId: integer('department_id')
     .notNull()
     .references(() => departments.departmentId),
-  managerId: integer('manager_id').references(() => employees.id),
+  managerId: integer('manager_id').references((): AnyPgColumn => employees.id),
   employmentStatusId: integer('employment_status_id')
     .notNull()
     .references(() => employmentStatuses.id),
@@ -51,8 +52,7 @@ export const employeesRelations = relations(employees, ({ one, many }) => ({
   }),
   manager: one(employees, {
     fields: [employees.managerId],
-    references: [employees.employeeId],
-    relationName: 'managedEmployees',
+    references: [employees.id],
   }),
   managedEmployees: many(employees, {
     relationName: 'managedEmployees',
