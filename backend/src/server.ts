@@ -8,6 +8,7 @@ import { loggingHandler } from './middleware/loggingHandler';
 import { routeNotFound } from './middleware/routeNotFound';
 import { server } from './config/config';
 import authRouter from './routes/auth.routes';
+import departmentRouter from './routes/department.routes';
 
 export const application = express();
 export let httpServer: ReturnType<typeof http.createServer>;
@@ -24,6 +25,7 @@ export const Main = () => {
     });
     
     application.use('/auth', authRouter);
+    application.use('/departments', departmentRouter);
     application.use(routeNotFound);
 
     httpServer = http.createServer(application);

@@ -37,7 +37,6 @@ export const useAuthStore = create<AuthState & AuthActions>((set, get) => ({
     },
 
     checkAuthStatus: async () => {
-        console.log('Checking auth status');
         set({ isLoading: true }); 
         try {
             const response = await checkAuthStatus();

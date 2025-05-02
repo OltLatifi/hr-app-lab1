@@ -48,7 +48,7 @@ const LoginPage: React.FC = () => {
         onSuccess: (data) => {
             setUser(data.user); // Update user state in the store
             // Token handling likely happens within authStore or via axios interceptors
-            // navigate('/');
+            navigate('/');
         },
         onError: (error) => {
             console.error('Login mutation error:', error);
