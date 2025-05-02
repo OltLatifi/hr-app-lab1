@@ -9,6 +9,7 @@ import { routeNotFound } from './middleware/routeNotFound';
 import { server } from './config/config';
 import authRouter from './routes/auth.routes';
 import departmentRouter from './routes/department.routes';
+import jobTitleRouter from './routes/jobtitle.route';
 
 export const application = express();
 export let httpServer: ReturnType<typeof http.createServer>;
@@ -26,6 +27,7 @@ export const Main = () => {
     
     application.use('/auth', authRouter);
     application.use('/departments', departmentRouter);
+    application.use('/jobtitles', jobTitleRouter);
     application.use(routeNotFound);
 
     httpServer = http.createServer(application);
