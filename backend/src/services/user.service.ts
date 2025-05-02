@@ -1,5 +1,5 @@
 import db from '../db';
-import { usersTable, User } from '../db/schema';
+import { users, User } from '../db/schema';
 import { eq } from 'drizzle-orm';
 import { hashPassword } from '../utils/auth.utils';
 
@@ -11,12 +11,12 @@ import { hashPassword } from '../utils/auth.utils';
  */
 export const findUserById = async (userId: number): Promise<User | null> => {
     const result = await db.select({
-        id: usersTable.id,
-        name: usersTable.name,
-        email: usersTable.email,
+        id: users.id,
+        name: users.name,
+        email: users.email,
     })
-    .from(usersTable)
-    .where(eq(usersTable.id, userId))
+    .from(users)
+    .where(eq(users.id, userId))
     .limit(1);
 
     return result.length > 0 ? result[0] as User : null;
@@ -28,10 +28,10 @@ export const findUserById = async (userId: number): Promise<User | null> => {
  * @param email - The email of the user to find.
  * @returns The full user object (including password hash) or null if not found.
  */
-export const findUserByEmailWithPassword = async (email: string): Promise<typeof usersTable.$inferSelect | null> => {
+export const findUserByEmailWithPassword = async (email: string): Promise<typeof users.$inferSelect | null> => {
     const result = await db.select()
-        .from(usersTable)
-        .where(eq(usersTable.email, email))
+        .from(users)
+        .where(eq(users.email, email))
         .limit(1);
 
     return result.length > 0 ? result[0] : null;
@@ -46,6 +46,6 @@ export const findUserByEmailWithPassword = async (email: string): Promise<typeof
  */
 export const createUser = async (name: string, email: string, password: string): Promise<User> => {
     const hashedPassword = await hashPassword(password);
-    const newUser = await db.insert(usersTable).values({ name, email, password: hashedPassword }).returning();
+    const newUser = await db.insert(users).values({ name, email, password: hashedPassword }).returning();
     return newUser[0] as User;
 };
