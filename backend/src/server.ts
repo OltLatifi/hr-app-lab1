@@ -11,7 +11,7 @@ import authRouter from './routes/auth.routes';
 import departmentRouter from './routes/department.routes';
 import jobTitleRouter from './routes/jobtitle.route';
 import employmentStatusRouter from './routes/employmentstatus.route';
-
+import employeeRouter from './routes/employee.route';
 export const application = express();
 export let httpServer: ReturnType<typeof http.createServer>;
 
@@ -30,6 +30,7 @@ export const Main = () => {
     application.use('/departments', departmentRouter);
     application.use('/jobtitles', jobTitleRouter);
     application.use('/employmentstatuses', employmentStatusRouter);
+    application.use('/employees', employeeRouter);
     application.use(routeNotFound);
 
     httpServer = http.createServer(application);
