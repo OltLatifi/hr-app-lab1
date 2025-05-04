@@ -6,7 +6,7 @@ import { findUserById } from '../services/user.service';
 declare global {
     namespace Express {
         interface Request {
-            user?: { id: number; name: string; email: string };
+            user?: { id: number; name: string; email: string; companyId: number | null; isAdmin: boolean };
         }
     }
 }
@@ -24,7 +24,6 @@ export const authenticateToken = async (req: Request, res: Response, next: NextF
         return res.status(403).json({ message: 'Authentication failed: Invalid or expired token.' });
     }
 
-    console.log('Payload:', payload);
 
     try {
         const user = await findUserById(payload.userId);

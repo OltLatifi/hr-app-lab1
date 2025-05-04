@@ -11,5 +11,7 @@ router.post('/login', validateRequest(loginSchema), authController.login);
 router.post('/refresh', authController.refresh);
 router.post('/logout', authController.logout);
 router.post("/register", validateRequest(createUserSchema), authController.register);
+router.post('/register-admin', authController.registerAdmin);
+router.get('/invitations/validate/:token', authController.validateInvitation);
 
 export default router; 

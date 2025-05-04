@@ -1,12 +1,8 @@
 import { create } from 'zustand';
 import apiClient from '../lib/api-client';
 import { checkAuthStatus } from '@/services/authService';
+import { User } from '@/types/user';
 
-interface User {
-    id: number;
-    name: string;
-    email: string;
-}
 interface AuthState {
     user: User | null;
     isLoading: boolean;

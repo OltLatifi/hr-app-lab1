@@ -1,6 +1,6 @@
 import db from "../db";
-import { departments, employees, employmentStatuses, jobTitles } from "../db/schema";
-import { eq } from "drizzle-orm";
+import { employees } from "../db/schema";
+import { eq, and } from "drizzle-orm";
 
 type Employee = typeof employees.$inferSelect;
 type EmployeeOrNull = Employee | null;
@@ -8,11 +8,13 @@ type EmployeeOrNull = Employee | null;
 /**
  * Finds a employee by their ID.
  * @param employeeId - The ID of the employee to find.
+ * @param companyId - The ID of the company the employee belongs to.
  * @returns The employee object or null if not found.
  */
-export const findEmployeeById = async (employeeId: number): Promise<EmployeeOrNull> => {
+export const findEmployeeById = async (employeeId: number, companyId: number): Promise<EmployeeOrNull> => {
     const results = await db.query.employees.findFirst({
-        where: eq(employees.id, employeeId),
+        where: and(eq(employees.id, employeeId), eq(employees.companyId, companyId)),
+
         with: {
             jobTitle: { columns: { id: true, name: true } },
             department: { columns: { departmentId: true, departmentName: true } },
@@ -25,10 +27,12 @@ export const findEmployeeById = async (employeeId: number): Promise<EmployeeOrNu
 
 /**
  * Retrieves all employees with their job title, department, manager, and employment status.
+ * @param companyId - The ID of the company the employees belong to.
  * @returns A list of all employee objects with specified relations.
  */
-export const getAllEmployees = async (): Promise<Array<Employee>> => {
+export const getAllEmployees = async (companyId: number): Promise<Array<Employee>> => {
     const results = await db.query.employees.findMany({
+        where: eq(employees.companyId, companyId),
         with: {
             jobTitle: { columns: { id: true, name: true } },
             department: { columns: { departmentId: true, departmentName: true } },
@@ -52,13 +56,14 @@ export const createEmployee = async (data: typeof employees.$inferInsert): Promi
 /**
  * Updates an existing department.
  * @param employeeId - The ID of the employee to update.
+ * @param companyId - The ID of the company the employee belongs to.
  * @param data - The updated data for the employee.
  * @returns The updated employee object or null if not found.
  */
-export const updateEmployee = async (employeeId: number, data: Partial<typeof employees.$inferInsert>): Promise<EmployeeOrNull> => {
+export const updateEmployee = async (employeeId: number, companyId: number, data: Partial<typeof employees.$inferInsert>): Promise<EmployeeOrNull> => {
     const result = await db.update(employees)
         .set({ ...data, updatedAt: new Date() })
-        .where(eq(employees.id, employeeId))
+        .where(and(eq(employees.id, employeeId), eq(employees.companyId, companyId) ))
         .returning();
 
     return result.length > 0 ? result[0] : null;
@@ -67,11 +72,12 @@ export const updateEmployee = async (employeeId: number, data: Partial<typeof em
 /**
  * Deletes a employee.
  * @param employeeId - The ID of the employee to delete.
+ * @param companyId - The ID of the company the employee belongs to.
  * @returns The deleted employee object or null if not found.
  */
-export const deleteEmployee = async (employeeId: number): Promise<EmployeeOrNull> => {
+export const deleteEmployee = async (employeeId: number, companyId: number): Promise<EmployeeOrNull> => {
     const result = await db.delete(employees)
-        .where(eq(employees.id, employeeId))
+        .where(and(eq(employees.id, employeeId), eq(employees.companyId, companyId)))
         .returning() as Array<Employee>;
     
     return result.length > 0 ? result[0] : null;

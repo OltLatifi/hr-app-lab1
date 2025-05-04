@@ -4,7 +4,7 @@ import { departments } from '../db/schema';
 
 export const createDepartmentSchema = createInsertSchema(departments, {
     departmentName: z.string().min(1, { message: 'Department name cannot be empty' }).max(255),
-});
+}).omit({ companyId: true });
 
 export const updateDepartmentSchema = createDepartmentSchema.partial();
 

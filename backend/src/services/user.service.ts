@@ -3,23 +3,46 @@ import { users, User } from '../db/schema';
 import { eq } from 'drizzle-orm';
 import { hashPassword } from '../utils/auth.utils';
 
+// Define a more specific type for the return value of findUserById
+type UserWithCompanyId = User & { companyId: number | null };
+
 /**
- * Finds a user by their ID.
+ * Finds a user by their ID, including the ID of the company they administer.
  * Excludes the password field from the result.
  * @param userId - The ID of the user to find.
- * @returns The user object or null if not found.
+ * @returns The user object with companyId or null if not found.
  */
-export const findUserById = async (userId: number): Promise<User | null> => {
-    const result = await db.select({
-        id: users.id,
-        name: users.name,
-        email: users.email,
-    })
-    .from(users)
-    .where(eq(users.id, userId))
-    .limit(1);
+export const findUserById = async (userId: number): Promise<UserWithCompanyId | null> => {
+    const result = await db.query.users.findFirst({
+        where: eq(users.id, userId),
+        columns: {
+            id: true,
+            name: true,
+            email: true,
+            isAdmin: true,
+        },
+        with: {
+            administeredCompany: {
+                columns: {
+                    id: true
+                }
+            }
+        }
+    });
 
-    return result.length > 0 ? result[0] as User : null;
+    if (!result) {
+        return null;
+    }
+
+    const userWithCompanyId: UserWithCompanyId = {
+        id: result.id,
+        name: result.name,
+        email: result.email,
+        companyId: result.administeredCompany?.id ?? null,
+        isAdmin: result.isAdmin
+    };
+
+    return userWithCompanyId;
 };
 
 /**
@@ -44,8 +67,8 @@ export const findUserByEmailWithPassword = async (email: string): Promise<typeof
  * @param password - The password of the user.
  * @returns The newly created user.
  */
-export const createUser = async (name: string, email: string, password: string): Promise<User> => {
+export const createUser = async (name: string, email: string, password: string, isAdmin: boolean = false): Promise<User> => {
     const hashedPassword = await hashPassword(password);
-    const newUser = await db.insert(users).values({ name, email, password: hashedPassword }).returning();
+    const newUser = await db.insert(users).values({ name, email, password: hashedPassword, isAdmin }).returning();
     return newUser[0] as User;
 };

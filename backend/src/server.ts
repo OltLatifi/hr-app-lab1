@@ -12,6 +12,9 @@ import departmentRouter from './routes/department.routes';
 import jobTitleRouter from './routes/jobtitle.route';
 import employmentStatusRouter from './routes/employmentstatus.route';
 import employeeRouter from './routes/employee.route';
+import adminRoutes from './routes/admin.routes';
+import companyRoutes from './routes/company.routes';
+
 export const application = express();
 export let httpServer: ReturnType<typeof http.createServer>;
 
@@ -31,6 +34,8 @@ export const Main = () => {
     application.use('/jobtitles', jobTitleRouter);
     application.use('/employmentstatuses', employmentStatusRouter);
     application.use('/employees', employeeRouter);
+    application.use('/admin', adminRoutes);
+    application.use('/companies', companyRoutes);
     application.use(routeNotFound);
 
     httpServer = http.createServer(application);

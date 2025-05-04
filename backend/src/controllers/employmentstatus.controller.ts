@@ -2,6 +2,15 @@ import { Request, Response } from 'express';
 import * as employmentStatusService from '../services/employmentstatus.service';
 
 export const create = async (req: Request, res: Response): Promise<Response> => {
+    const companyId = req.user?.companyId;
+
+    if(!companyId){
+        return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    const body = req.body;
+    body.companyId = companyId;
+
     try {
         const employmentStatus = await employmentStatusService.createEmploymentStatus(req.body);
         return res.status(201).json(employmentStatus);
@@ -12,8 +21,14 @@ export const create = async (req: Request, res: Response): Promise<Response> => 
 };
 
 export const findAll = async (req: Request, res: Response): Promise<Response> => {
+    const companyId = req.user?.companyId;
+
+    if(!companyId){
+        return res.status(401).json({ message: 'Unauthorized' });
+    }
+
     try {
-        const employmentStatuses = await employmentStatusService.getAllEmploymentStatuses();
+        const employmentStatuses = await employmentStatusService.getAllEmploymentStatuses(companyId);
         return res.status(200).json(employmentStatuses);
     } catch (error) {
         console.error('Error fetching employment statuses:', error);
@@ -22,12 +37,18 @@ export const findAll = async (req: Request, res: Response): Promise<Response> =>
 };
 
 export const findOne = async (req: Request, res: Response): Promise<Response> => {
+    const companyId = req.user?.companyId;
+
+    if(!companyId){
+        return res.status(401).json({ message: 'Unauthorized' });
+    }
+
     try {
         const id = parseInt(req.params.id, 10);
         if (isNaN(id)) {
             return res.status(400).json({ message: 'Invalid employment status ID' });
         }
-        const employmentStatus = await employmentStatusService.findEmploymentStatusById(id);
+        const employmentStatus = await employmentStatusService.findEmploymentStatusById(id, companyId);
         if (!employmentStatus) {
             return res.status(404).json({ message: 'Employment status not found' });
         }
@@ -39,12 +60,18 @@ export const findOne = async (req: Request, res: Response): Promise<Response> =>
 };
 
 export const update = async (req: Request, res: Response): Promise<Response> => {
+    const companyId = req.user?.companyId;
+
+    if(!companyId){
+        return res.status(401).json({ message: 'Unauthorized' });
+    }
+
     try {
         const id = parseInt(req.params.id, 10);
         if (isNaN(id)) {
             return res.status(400).json({ message: 'Invalid employment status ID' });
         }
-        const employmentStatus = await employmentStatusService.updateEmploymentStatus(id, req.body);
+        const employmentStatus = await employmentStatusService.updateEmploymentStatus(id, companyId, req.body);
         if (!employmentStatus) {
             return res.status(404).json({ message: 'Employment status not found' });
         }
@@ -56,12 +83,18 @@ export const update = async (req: Request, res: Response): Promise<Response> => 
 };
 
 export const remove = async (req: Request, res: Response): Promise<Response> => {
+    const companyId = req.user?.companyId;
+
+    if(!companyId){
+        return res.status(401).json({ message: 'Unauthorized' });
+    }
+
     try {
         const id = parseInt(req.params.id, 10);
         if (isNaN(id)) {
             return res.status(400).json({ message: 'Invalid employment status ID' });
         }
-        const employmentStatus = await employmentStatusService.deleteEmploymentStatus(id);
+        const employmentStatus = await employmentStatusService.deleteEmploymentStatus(id, companyId);
         if (!employmentStatus) {
             return res.status(404).json({ message: 'Employment status not found' });
         }

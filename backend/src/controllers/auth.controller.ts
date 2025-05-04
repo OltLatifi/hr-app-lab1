@@ -8,6 +8,11 @@ import {
 } from '../utils/auth.utils';
 import { createUser, findUserByEmailWithPassword } from '../services/user.service';
 import { authConfig } from '../config/auth.config';
+import {
+    findValidInvitationByToken,
+    markInvitationAsAccepted
+} from '../services/invitation.service';
+import { updateCompanyAdmin } from '../services/company.service';
 
 // --- Helper Function to Set Cookies ---
 const setAuthCookies = (res: Response, accessToken: string, refreshToken: string) => {
@@ -139,4 +144,70 @@ export const register = async (req: Request, res: Response): Promise<Response> =
         console.error('Registration error:', error);
         return res.status(500).json({ message: 'Internal server error during registration.' });
     }
-}; 
+};
+
+export const validateInvitation = async (req: Request, res: Response): Promise<Response> => {
+    const { token } = req.params;
+
+    if (!token) {
+        return res.status(400).json({ message: 'Invitation token is required.' });
+    }
+
+    try {
+        const invitation = await findValidInvitationByToken(token);
+
+        if (!invitation) {
+            return res.status(404).json({ message: 'Invitation is invalid, expired, or already used.' });
+        }
+
+        return res.status(200).json({ 
+            message: 'Invitation is valid.', 
+            email: invitation.invitedUserEmail 
+        });
+
+    } catch (error) {
+        console.error('Error validating invitation token:', error);
+        return res.status(500).json({ message: 'Internal server error during token validation.' });
+    }
+};
+
+
+export const registerAdmin = async (req: Request, res: Response): Promise<Response> => {
+    const { name, password, token } = req.body;
+
+    if (!name || !password || !token) {
+        return res.status(400).json({ message: 'Name, password, and invitation token are required.' });
+    }
+
+    try {
+        const invitation = await findValidInvitationByToken(token);
+        if (!invitation) {
+            return res.status(400).json({ message: 'Invalid or expired invitation token.' });
+        }
+
+        const existingUser = await findUserByEmailWithPassword(invitation.invitedUserEmail);
+        if (existingUser) {
+            return res.status(409).json({ message: 'Email associated with this invitation is already registered.' });
+        }
+
+        const newUser = await createUser(name, invitation.invitedUserEmail, password);
+
+        await updateCompanyAdmin(invitation.companyId, newUser.id);
+
+        await markInvitationAsAccepted(token);
+
+        const tokenPayload: AuthTokenPayload = { userId: newUser.id };
+        const accessToken = generateAccessToken(tokenPayload);
+        const refreshToken = generateRefreshToken(tokenPayload);
+        setAuthCookies(res, accessToken, refreshToken);
+
+        return res.status(201).json({ 
+            message: 'Admin registration successful', 
+            user: { id: newUser.id, name: newUser.name, email: newUser.email }
+        });
+
+    } catch (error) {
+        console.error('Admin registration error:', error);
+        return res.status(500).json({ message: 'Internal server error during admin registration.' });
+    }
+};

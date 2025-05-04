@@ -8,6 +8,7 @@ import {
   primaryKey,
   text,
   AnyPgColumn,
+  boolean,
 } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
@@ -16,9 +17,25 @@ export const users = pgTable("user", {
   name: varchar('name', { length: 255 }).notNull(),
   email: varchar('email', { length: 255 }).notNull().unique(),
   password: text('password').notNull(),
+  isAdmin: boolean('is_admin').notNull().default(false),
 });
 
-// Any because it references itself
+export const company = pgTable('company', {
+  id: serial('id').primaryKey(),
+  name: varchar('name', { length: 255 }).notNull(),
+  adminId: integer('admin_id')
+    .references(() => users.id),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export const companyRelations = relations(company, ({ one }) => ({
+  admin: one(users, {
+    fields: [company.adminId],
+    references: [users.id],
+  }),
+}));
+
 export const employees = pgTable('employee', {
   id: serial('id').primaryKey(),
   firstName: varchar('first_name', { length: 255 }).notNull(),
@@ -37,6 +54,9 @@ export const employees = pgTable('employee', {
   employmentStatusId: integer('employment_status_id')
     .notNull()
     .references(() => employmentStatuses.id),
+  companyId: integer('company_id')
+    .notNull()
+    .references(() => company.id),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
@@ -71,6 +91,10 @@ export const employeesRelations = relations(employees, ({ one, many }) => ({
     fields: [employees.id],
     references: [users.id],
   }),
+  company: one(company, {
+    fields: [employees.companyId],
+    references: [company.id],
+  }),
 }));
 
 // Departments
@@ -79,10 +103,17 @@ export const departments = pgTable('department', {
   departmentName: varchar('department_name', { length: 255 }).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  companyId: integer('company_id')
+    .notNull()
+    .references(() => company.id),
 });
 
-export const departmentsRelations = relations(departments, ({ many }) => ({
+export const departmentsRelations = relations(departments, ({ many, one }) => ({
   employees: many(employees),
+  company: one(company, {
+    fields: [departments.companyId],
+    references: [company.id],
+  }),
 }));
 
 // JobTitles
@@ -91,10 +122,17 @@ export const jobTitles = pgTable('jobtitle', {
   name: varchar('name', { length: 255 }).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  companyId: integer('company_id')
+    .notNull()
+    .references(() => company.id),
 });
 
-export const jobTitlesRelations = relations(jobTitles, ({ many }) => ({
+export const jobTitlesRelations = relations(jobTitles, ({ many, one }) => ({
   employees: many(employees),
+  company: one(company, {
+    fields: [jobTitles.companyId],
+    references: [company.id],
+  }),
 }));
 
 // EmploymentStatuses
@@ -103,12 +141,19 @@ export const employmentStatuses = pgTable('employmentstatus', {
   statusName: varchar('status_name', { length: 50 }).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  companyId: integer('company_id')
+    .notNull()
+    .references(() => company.id),
 });
 
 export const employmentStatusesRelations = relations(
   employmentStatuses,
-  ({ many }) => ({
+  ({ many, one }) => ({
     employees: many(employees),
+    company: one(company, {
+      fields: [employmentStatuses.companyId],
+      references: [company.id],
+    }),
   }),
 );
 
@@ -124,12 +169,19 @@ export const attendance = pgTable('attendance', {
   status: varchar('status', { length: 50 }),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  companyId: integer('company_id')
+    .notNull()
+    .references(() => company.id),
 });
 
 export const attendanceRelations = relations(attendance, ({ one }) => ({
   employee: one(employees, {
     fields: [attendance.employeeId],
     references: [employees.id],
+  }),
+  company: one(company, {
+    fields: [attendance.companyId],
+    references: [company.id],
   }),
 }));
 
@@ -147,6 +199,9 @@ export const leaveRequests = pgTable('leaverequest', {
   status: varchar('status', { length: 50 }).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  companyId: integer('company_id')
+    .notNull()
+    .references(() => company.id),
 });
 
 export const leaveRequestsRelations = relations(leaveRequests, ({ one }) => ({
@@ -158,6 +213,10 @@ export const leaveRequestsRelations = relations(leaveRequests, ({ one }) => ({
     fields: [leaveRequests.leaveTypeId],
     references: [leaveTypes.id],
   }),
+  company: one(company, {
+    fields: [leaveRequests.companyId],
+    references: [company.id],
+  }),
 }));
 
 // LeaveTypes
@@ -166,10 +225,17 @@ export const leaveTypes = pgTable('leavetype', {
   typeName: varchar('type_name', { length: 50 }).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  companyId: integer('company_id')
+    .notNull()
+    .references(() => company.id),
 });
 
-export const leaveTypesRelations = relations(leaveTypes, ({ many }) => ({
+export const leaveTypesRelations = relations(leaveTypes, ({ many, one }) => ({
   leaveRequests: many(leaveRequests),
+  company: one(company, {
+    fields: [leaveTypes.companyId],
+    references: [company.id],
+  }),
 }));
 
 // Payroll
@@ -180,16 +246,23 @@ export const payroll = pgTable('payroll', {
     .references(() => employees.id),
   payPeriodStartDate: date('pay_period_start_date').notNull(),
   payPeriodEndDate: date('pay_period_end_date').notNull(),
-  netPay: integer('net_pay').notNull(), // Using integer for simplicity, consider numeric/decimal for currency
+  netPay: integer('net_pay').notNull(),
   paymentDate: date('payment_date'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  companyId: integer('company_id')
+    .notNull()
+    .references(() => company.id),
 });
 
 export const payrollRelations = relations(payroll, ({ one }) => ({
   employee: one(employees, {
     fields: [payroll.employeeId],
     references: [employees.id],
+  }),
+  company: one(company, {
+    fields: [payroll.companyId],
+    references: [company.id],
   }),
 }));
 
@@ -199,10 +272,17 @@ export const benefits = pgTable('benefit', {
   name: varchar('name', { length: 255 }).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  companyId: integer('company_id')
+    .notNull()
+    .references(() => company.id),
 });
 
-export const benefitsRelations = relations(benefits, ({ many }) => ({
+export const benefitsRelations = relations(benefits, ({ many, one }) => ({
   employeeBenefits: many(employeeBenefits),
+  company: one(company, {
+    fields: [benefits.companyId],
+    references: [company.id],
+  }),
 }));
 
 // EmployeeBenefits (Linking Table)
@@ -219,6 +299,9 @@ export const employeeBenefits = pgTable(
     enrollmentDate: date('enrollment_date').notNull(),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
+    companyId: integer('company_id')
+      .notNull()
+      .references(() => company.id),
   }
 );
 
@@ -233,6 +316,10 @@ export const employeeBenefitsRelations = relations(
       fields: [employeeBenefits.benefitId],
       references: [benefits.id],
     }),
+    company: one(company, {
+      fields: [employeeBenefits.companyId],
+      references: [company.id],
+    }),
   }),
 );
 
@@ -246,6 +333,9 @@ export const performanceReviews = pgTable('performancereview', {
   overallRating: integer('overall_rating'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  companyId: integer('company_id')
+    .notNull()
+    .references(() => company.id),
 });
 
 export const performanceReviewsRelations = relations(
@@ -254,6 +344,10 @@ export const performanceReviewsRelations = relations(
     employee: one(employees, {
       fields: [performanceReviews.employeeId],
       references: [employees.id],
+    }),
+    company: one(company, {
+      fields: [performanceReviews.companyId],
+      references: [company.id],
     }),
   }),
 );
@@ -264,12 +358,19 @@ export const trainingPrograms = pgTable('trainingprogram', {
   name: varchar('name', { length: 255 }).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  companyId: integer('company_id')
+    .notNull()
+    .references(() => company.id),
 });
 
 export const trainingProgramsRelations = relations(
   trainingPrograms,
-  ({ many }) => ({
+  ({ many, one }) => ({
     employeeTraining: many(employeeTraining),
+    company: one(company, {
+      fields: [trainingPrograms.companyId],
+      references: [company.id],
+    }),
   }),
 );
 
@@ -312,6 +413,10 @@ export const usersRelations = relations(users, ({ one }) => ({
     fields: [users.id],
     references: [roles.id],
   }),
+  administeredCompany: one(company, {
+    fields: [users.id],
+    references: [company.adminId],
+  })
 }));
 
 export const roles = pgTable('role', {
@@ -325,6 +430,33 @@ export const rolesRelations = relations(roles, ({ many }) => ({
   users: many(users),
 }));
 
+// Admin Invitations Table
+export const adminInvitations = pgTable('admin_invitation', {
+  id: serial('id').primaryKey(),
+  companyId: integer('company_id')
+    .notNull()
+    .references(() => company.id),
+  invitedUserEmail: varchar('invited_user_email', { length: 255 }).notNull(),
+  invitationToken: varchar('invitation_token', { length: 255 }).notNull().unique(),
+  expiresAt: timestamp('expires_at').notNull(),
+  status: varchar('status', { length: 50 }).notNull().default('pending'),
+  invitedById: integer('invited_by_id')
+    .notNull()
+    .references(() => users.id),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export const adminInvitationsRelations = relations(adminInvitations, ({ one }) => ({
+  company: one(company, {
+    fields: [adminInvitations.companyId],
+    references: [company.id],
+  }),
+  invitedBy: one(users, {
+    fields: [adminInvitations.invitedById],
+    references: [users.id],
+  }),
+}));
 
 export type NewUser = typeof users.$inferInsert;
 type SelectUser = typeof users.$inferSelect;

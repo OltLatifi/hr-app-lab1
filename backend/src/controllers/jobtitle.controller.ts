@@ -2,8 +2,17 @@ import { Request, Response } from 'express';
 import * as jobTitleService from '../services/jobtitles.service';
 
 export const create = async (req: Request, res: Response): Promise<Response> => {
+    const companyId = req.user?.companyId;
+
+    if(!companyId){
+        return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    const body = req.body;
+    body.companyId = companyId;
+
     try {
-        const jobTitle = await jobTitleService.createJobTitle(req.body);
+        const jobTitle = await jobTitleService.createJobTitle(body);
         return res.status(201).json(jobTitle);
     } catch (error) {
         console.error('Error creating job title:', error);
@@ -12,8 +21,14 @@ export const create = async (req: Request, res: Response): Promise<Response> => 
 };
 
 export const findAll = async (req: Request, res: Response): Promise<Response> => {
+    const companyId = req.user?.companyId;
+
+    if(!companyId){
+        return res.status(401).json({ message: 'Unauthorized' });
+    }
+
     try {
-        const jobTitles = await jobTitleService.getAllJobTitles();
+        const jobTitles = await jobTitleService.getAllJobTitles(companyId);
         return res.status(200).json(jobTitles);
     } catch (error) {
         console.error('Error fetching job titles:', error);
@@ -22,12 +37,18 @@ export const findAll = async (req: Request, res: Response): Promise<Response> =>
 };
 
 export const findOne = async (req: Request, res: Response): Promise<Response> => {
+    const companyId = req.user?.companyId;
+
+    if(!companyId){
+        return res.status(401).json({ message: 'Unauthorized' });
+    }
+
     try {
         const id = parseInt(req.params.id, 10);
         if (isNaN(id)) {
             return res.status(400).json({ message: 'Invalid job title ID' });
         }
-        const jobTitle = await jobTitleService.findJobTitleById(id);
+        const jobTitle = await jobTitleService.findJobTitleById(id, companyId);
         if (!jobTitle) {
             return res.status(404).json({ message: 'Job title not found' });
         }
@@ -39,12 +60,18 @@ export const findOne = async (req: Request, res: Response): Promise<Response> =>
 };
 
 export const update = async (req: Request, res: Response): Promise<Response> => {
+    const companyId = req.user?.companyId;
+
+    if(!companyId){
+        return res.status(401).json({ message: 'Unauthorized' });
+    }
+
     try {
         const id = parseInt(req.params.id, 10);
         if (isNaN(id)) {
             return res.status(400).json({ message: 'Invalid job title ID' });
         }
-        const jobTitle = await jobTitleService.updateJobTitle(id, req.body);
+        const jobTitle = await jobTitleService.updateJobTitle(id, companyId, req.body);
         if (!jobTitle) {
             return res.status(404).json({ message: 'Job title not found' });
         }
@@ -56,12 +83,18 @@ export const update = async (req: Request, res: Response): Promise<Response> => 
 };
 
 export const remove = async (req: Request, res: Response): Promise<Response> => {
+    const companyId = req.user?.companyId;
+
+    if(!companyId){
+        return res.status(401).json({ message: 'Unauthorized' });
+    }
+
     try {
         const id = parseInt(req.params.id, 10);
         if (isNaN(id)) {
             return res.status(400).json({ message: 'Invalid job title ID' });
         }
-        const jobTitle = await jobTitleService.deleteJobTitle(id);
+        const jobTitle = await jobTitleService.deleteJobTitle(id, companyId);
         if (!jobTitle) {
             return res.status(404).json({ message: 'Job title not found' });
         }
