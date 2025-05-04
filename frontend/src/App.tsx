@@ -19,6 +19,9 @@ import EmploymentStatusListPage from './pages/employmentstatus/list-page';
 import EmploymentStatusAddPage from './pages/employmentstatus/create-page';
 import EmploymentStatusUpdatePage from './pages/employmentstatus/update-page';
 
+import EmployeeListPage from './pages/employees/list-page';
+import EmployeeAddPage from './pages/employees/create-page';
+import EmployeeUpdatePage from './pages/employees/update-page';
 
 const HomePage: React.FC = () => {
   return (
@@ -52,6 +55,10 @@ function AppContent() {
             <Route path="/employment-statuses" element={<EmploymentStatusListPage />} />
             <Route path="/employment-statuses/add" element={<EmploymentStatusAddPage />} />
             <Route path="/employment-statuses/edit/:id" element={<EmploymentStatusUpdatePage />} />
+
+            <Route path="/employees" element={<EmployeeListPage />} />
+            <Route path="/employees/add" element={<EmployeeAddPage />} />
+            <Route path="/employees/edit/:id" element={<EmployeeUpdatePage />} />
           </Route>
 
           {/* Fallback Route */}

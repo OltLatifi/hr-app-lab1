@@ -14,6 +14,7 @@ const Navbar: React.FC = () => {
                     <Link to="/">HR Management System</Link>
                 </div>
                 <div className="space-x-4">
+                    <Link to="/employees">Employees</Link>
                     <Link to="/departments">Departments</Link>
                     <Link to="/jobtitles">Job Titles</Link>
                     <Link to="/employment-statuses">Employment Statuses</Link>
