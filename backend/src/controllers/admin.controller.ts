@@ -1,17 +1,7 @@
 import { Request, Response } from 'express';
 import { createAdminInvitation } from '../services/invitation.service';
 import { findCompanyById } from '../services/company.service';
-
-const sendInvitationEmail = async (email: string, token: string, companyName: string) => {
-    console.log(`--- Sending Invitation ---`);
-    console.log(`To: ${email}`);
-    console.log(`Company: ${companyName}`);
-    console.log(`Token: ${token}`);
-    const registrationLink = `http://localhost:5173/register?token=${token}`;
-    console.log(`Link: ${registrationLink}`);
-    console.log(`------------------------`);
-    await new Promise(resolve => setTimeout(resolve, 500)); 
-};
+import { sendEmail } from '../utils/email.utils';
 
 export const inviteAdmin = async (req: Request, res: Response): Promise<Response> => {
     const { companyId, invitedUserEmail } = req.body;
@@ -43,10 +33,11 @@ export const inviteAdmin = async (req: Request, res: Response): Promise<Response
             inviterUser.id
         );
 
-        sendInvitationEmail(invitedUserEmail, invitation.invitationToken, companyName)
-            .catch(emailError => {
-                console.error("Failed to send invitation email:", emailError);
-            });
+        sendEmail(
+            invitedUserEmail,
+            "HR Management System - Admin Invitation",
+            `<p>You have been invited to join ${companyName} as an admin. Please click the link below to register:</p><p><a href="http://localhost:5173/register?token=${invitation.invitationToken}">Register</a></p>`
+        );
 
         return res.status(201).json({ 
             message: 'Admin invitation sent successfully.',

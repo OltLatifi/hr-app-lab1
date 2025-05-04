@@ -56,7 +56,7 @@ export const employees = pgTable('employee', {
     .references(() => employmentStatuses.id),
   companyId: integer('company_id')
     .notNull()
-    .references(() => company.id),
+    .references(() => company.id, { onDelete: 'cascade' }),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
@@ -105,7 +105,7 @@ export const departments = pgTable('department', {
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
   companyId: integer('company_id')
     .notNull()
-    .references(() => company.id),
+    .references(() => company.id, { onDelete: 'cascade' }),
 });
 
 export const departmentsRelations = relations(departments, ({ many, one }) => ({
@@ -124,7 +124,7 @@ export const jobTitles = pgTable('jobtitle', {
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
   companyId: integer('company_id')
     .notNull()
-    .references(() => company.id),
+    .references(() => company.id, { onDelete: 'cascade' }),
 });
 
 export const jobTitlesRelations = relations(jobTitles, ({ many, one }) => ({
@@ -143,7 +143,7 @@ export const employmentStatuses = pgTable('employmentstatus', {
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
   companyId: integer('company_id')
     .notNull()
-    .references(() => company.id),
+    .references(() => company.id, { onDelete: 'cascade' }),
 });
 
 export const employmentStatusesRelations = relations(
@@ -171,7 +171,7 @@ export const attendance = pgTable('attendance', {
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
   companyId: integer('company_id')
     .notNull()
-    .references(() => company.id),
+    .references(() => company.id, { onDelete: 'cascade' }),
 });
 
 export const attendanceRelations = relations(attendance, ({ one }) => ({
@@ -201,7 +201,7 @@ export const leaveRequests = pgTable('leaverequest', {
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
   companyId: integer('company_id')
     .notNull()
-    .references(() => company.id),
+    .references(() => company.id, { onDelete: 'cascade' }),
 });
 
 export const leaveRequestsRelations = relations(leaveRequests, ({ one }) => ({
@@ -227,7 +227,7 @@ export const leaveTypes = pgTable('leavetype', {
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
   companyId: integer('company_id')
     .notNull()
-    .references(() => company.id),
+    .references(() => company.id, { onDelete: 'cascade' }),
 });
 
 export const leaveTypesRelations = relations(leaveTypes, ({ many, one }) => ({
@@ -252,7 +252,7 @@ export const payroll = pgTable('payroll', {
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
   companyId: integer('company_id')
     .notNull()
-    .references(() => company.id),
+    .references(() => company.id, { onDelete: 'cascade' }),
 });
 
 export const payrollRelations = relations(payroll, ({ one }) => ({
@@ -274,7 +274,7 @@ export const benefits = pgTable('benefit', {
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
   companyId: integer('company_id')
     .notNull()
-    .references(() => company.id),
+    .references(() => company.id, { onDelete: 'cascade' }),
 });
 
 export const benefitsRelations = relations(benefits, ({ many, one }) => ({
@@ -301,7 +301,7 @@ export const employeeBenefits = pgTable(
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
     companyId: integer('company_id')
       .notNull()
-      .references(() => company.id),
+      .references(() => company.id, { onDelete: 'cascade' }),
   }
 );
 
@@ -335,7 +335,7 @@ export const performanceReviews = pgTable('performancereview', {
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
   companyId: integer('company_id')
     .notNull()
-    .references(() => company.id),
+    .references(() => company.id, { onDelete: 'cascade' }),
 });
 
 export const performanceReviewsRelations = relations(
@@ -360,7 +360,7 @@ export const trainingPrograms = pgTable('trainingprogram', {
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
   companyId: integer('company_id')
     .notNull()
-    .references(() => company.id),
+    .references(() => company.id, { onDelete: 'cascade' }),
 });
 
 export const trainingProgramsRelations = relations(
@@ -435,7 +435,7 @@ export const adminInvitations = pgTable('admin_invitation', {
   id: serial('id').primaryKey(),
   companyId: integer('company_id')
     .notNull()
-    .references(() => company.id),
+    .references(() => company.id, { onDelete: 'cascade' }),
   invitedUserEmail: varchar('invited_user_email', { length: 255 }).notNull(),
   invitationToken: varchar('invitation_token', { length: 255 }).notNull().unique(),
   expiresAt: timestamp('expires_at').notNull(),

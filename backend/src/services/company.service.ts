@@ -1,5 +1,5 @@
 import db from '../db';
-import { company } from '../db/schema';
+import { company, users } from '../db/schema';
 import { eq } from 'drizzle-orm';
 
 type CreatedCompany = typeof company.$inferSelect;
@@ -86,15 +86,37 @@ export const createCompany = async (name: string): Promise<CreatedCompany> => {
  */
 export const deleteCompany = async (companyId: number) => {
     try {
-        const result = await db
-            .delete(company)
+        const transaction = await db.transaction(async (tx) => {
+            const companiesFound = await tx.select({
+                adminId: company.adminId
+            })
+            .from(company)
             .where(eq(company.id, companyId))
-            .returning();
+            .limit(1);
 
-        if (!result) {
-            throw new Error('Company not found or could not be deleted.');
-        }
-        return result[0];
+            if (companiesFound.length === 0) {
+                throw new Error('Company not found.');
+            }
+
+            const adminIdToDelete = companiesFound[0].adminId;
+
+            if (adminIdToDelete !== null) {
+                await tx.delete(users)
+                    .where(eq(users.id, adminIdToDelete));
+            }
+            
+            const deletedCompany = await tx.delete(company)
+                .where(eq(company.id, companyId))
+                .returning();
+
+            if (deletedCompany.length === 0) {
+                throw new Error('Failed to delete company after finding it.');
+            }
+
+            return deletedCompany[0];
+        });
+
+        return transaction;
     } catch (error) {
         console.error('Error deleting company:', error);
         throw new Error('Database error during company deletion.');
