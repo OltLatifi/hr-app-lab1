@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import * as benefitController from '../controllers/benefits.controller';
+import * as benefitController from '../controllers/benefit.controller';
 import { authenticateToken } from '../middleware/auth.middleware';
 import { validateRequest } from '../middleware/validateRequest.middleware';
 import { createBenefitSchema, updateBenefitSchema } from '../validation/benefit.validation';

@@ -16,7 +16,7 @@ import adminRoutes from './routes/admin.routes';
 import companyRoutes from './routes/company.routes';
 import trainingRouter from './routes/training.route';
 import benefitRouter from './routes/benefit.route';
-import leaveTypeRouter from './routes/leavetypes.route';
+import leaveTypeRouter from './routes/leavetype.route';
 
 export const application = express();
 export let httpServer: ReturnType<typeof http.createServer>;
