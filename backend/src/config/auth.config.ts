@@ -4,7 +4,6 @@ import 'dotenv/config'; // Ensure environment variables are loaded
 const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET || 'YOUR_VERY_SECRET_ACCESS_KEY_PLACEHOLDER';
 const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET || 'YOUR_VERY_SECRET_REFRESH_KEY_PLACEHOLDER';
 
-// Use seconds for expiration times to comply with jwt types
 const ACCESS_TOKEN_EXPIRATION = 15 * 60; // 900 seconds = 15 minutes
 const REFRESH_TOKEN_EXPIRATION = 7 * 24 * 60 * 60; // 604800 seconds = 7 days
 

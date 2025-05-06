@@ -14,7 +14,6 @@ import {
 } from '../services/invitation.service';
 import { updateCompanyAdmin } from '../services/company.service';
 
-// --- Helper Function to Set Cookies ---
 const setAuthCookies = (res: Response, accessToken: string, refreshToken: string) => {
     res.cookie(authConfig.cookies.access, accessToken, {
         httpOnly: true,
@@ -27,12 +26,10 @@ const setAuthCookies = (res: Response, accessToken: string, refreshToken: string
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
-        path: '/api/auth/refresh',
+        path: '/',
         maxAge: authConfig.expiration.refresh * 1000,
     });
 };
-
-// --- Controller Functions ---
 
 export const getStatus = (req: Request, res: Response) => {
     if (!req.user) {
@@ -79,6 +76,8 @@ export const login = async (req: Request, res: Response): Promise<Response> => {
 };
 
 export const refresh = async (req: Request, res: Response): Promise<Response> => {
+    logging.log('THIS ENDPOINT IS BEING CALLED');
+    logging.log(req.cookies);
     const existingRefreshToken = req.cookies[authConfig.cookies.refresh];
 
     if (!existingRefreshToken) {
