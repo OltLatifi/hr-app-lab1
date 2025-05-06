@@ -40,7 +40,9 @@ const Navbar: React.FC = () => {
                     <Link to="/departments">Departments</Link>
                     <Link to="/jobtitles">Job Titles</Link>
                     <Link to="/employment-statuses">Employment Statuses</Link>
-                    <Link to="/leave-requests">Leave Requests</Link>
+                    <Link to="/leavetypes">Leave Types</Link>
+                    <Link to="/trainings">Trainings</Link>
+                    <Link to="/benefits">Benefits</Link>
                     <button onClick={handleLogout}>Logout</button>
                 </div>
             </div>

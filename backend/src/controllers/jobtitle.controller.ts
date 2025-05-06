@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import * as jobTitleService from '../services/jobtitles.service';
+import * as jobTitleService from '../services/jobtitle.service';
 
 export const create = async (req: Request, res: Response): Promise<Response> => {
     const companyId = req.user?.companyId;

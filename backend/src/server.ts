@@ -39,7 +39,7 @@ export const Main = () => {
     application.use('/employees', employeeRouter);
     application.use('/admin', adminRoutes);
     application.use('/companies', companyRoutes);
-    application.use('/training', trainingRouter);
+    application.use('/trainings', trainingRouter);
     application.use('/benefits', benefitRouter);
     application.use('/leavetypes', leaveTypeRouter);
     application.use(routeNotFound);
