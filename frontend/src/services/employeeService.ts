@@ -1,5 +1,3 @@
-
-
 import apiClient from '@/lib/api-client';
 
 export interface CreateEmployeePayload {
@@ -11,6 +9,13 @@ export interface CreateEmployeePayload {
     hireDate: string;
     jobTitleId: number;
     departmentId: number;
+}
+
+export interface EmployeeFilters {
+    departmentId?: string;
+    managerId?: string;
+    statusId?: string;
+    searchTerm?: string;
 }
 
 export interface EmployeeResponse {
@@ -59,9 +64,16 @@ export const deleteEmployee = async (employeeId: number): Promise<void> => {
     }
 };  
 
-export const getEmployees = async (): Promise<EmployeeResponse[]> => {
+export const getEmployees = async (filters?: EmployeeFilters): Promise<EmployeeResponse[]> => {
     try {
-        const response = await apiClient.get<EmployeeResponse[]>('/employees');
+        const queryParams = new URLSearchParams();
+        if (filters) {
+            if (filters.departmentId) queryParams.append('departmentId', filters.departmentId);
+            if (filters.managerId) queryParams.append('managerId', filters.managerId);
+            if (filters.statusId) queryParams.append('statusId', filters.statusId);
+            if (filters.searchTerm) queryParams.append('searchTerm', filters.searchTerm);
+        }
+        const response = await apiClient.get<EmployeeResponse[]>(`/employees?${queryParams.toString()}`);
         return response.data;
     } catch (error) {
         console.error('API Error Fetching Employees:', error);

@@ -1,6 +1,6 @@
 import db from "../db";
 import { employees } from "../db/schema";
-import { eq, and } from "drizzle-orm";
+import { eq, and, or, like, SQL, sql } from "drizzle-orm";
 
 type Employee = typeof employees.$inferSelect;
 type EmployeeOrNull = Employee | null;
@@ -28,18 +28,53 @@ export const findEmployeeById = async (employeeId: number, companyId: number): P
 /**
  * Retrieves all employees with their job title, department, manager, and employment status.
  * @param companyId - The ID of the company the employees belong to.
+ * @param filters - Optional filters for departmentId, managerId, statusId, and searchTerm.
  * @returns A list of all employee objects with specified relations.
  */
-export const getAllEmployees = async (companyId: number): Promise<Array<Employee>> => {
-    const results = await db.query.employees.findMany({
-        where: eq(employees.companyId, companyId),
+export interface EmployeeQueryFilters {
+    departmentId?: string;
+    managerId?: string;
+    statusId?: string;
+    searchTerm?: string;
+}
+
+export const getAllEmployees = async (companyId: number, filters?: EmployeeQueryFilters): Promise<Array<Employee>> => {
+    const baseCondition = eq(employees.companyId, companyId);
+    const additionalConditions: SQL[] = [];
+
+    if (filters) {
+        if (filters.departmentId) {
+            additionalConditions.push(eq(employees.departmentId, Number(filters.departmentId)));
+        }
+        if (filters.managerId) {
+            additionalConditions.push(eq(employees.managerId, Number(filters.managerId)));
+        }
+        if (filters.statusId) {
+            additionalConditions.push(eq(employees.employmentStatusId, Number(filters.statusId)));
+        }
+        if (filters.searchTerm) {
+            const searchTermCondition = `%${filters.searchTerm}%`;
+            additionalConditions.push(
+                or(
+                    like(employees.firstName, searchTermCondition),
+                    like(employees.lastName, searchTermCondition),
+                    like(employees.email, searchTermCondition)
+                )!
+            );
+        }
+    }
+
+    const queryConfig = {
+        where: additionalConditions.length > 0 ? and(baseCondition, ...additionalConditions) : baseCondition,
         with: {
             jobTitle: { columns: { id: true, name: true } },
             department: { columns: { departmentId: true, departmentName: true } },
             manager: { columns: { id: true, firstName: true, lastName: true } },
             employmentStatus: { columns: { id: true, statusName: true } }
         },
-    });
+    };
+
+    const results = await db.query.employees.findMany(queryConfig);
     return results as Array<Employee>;
 };
 

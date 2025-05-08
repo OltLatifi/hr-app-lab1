@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, ChangeEvent, useRef, useEffect } from 'react';
 
 import {
     useQuery,
@@ -30,22 +30,97 @@ import {
     CardTitle,
 } from "@/components/ui/card";
 import { Link } from 'react-router-dom';
-import { deleteEmployee, getEmployees, EmployeeResponse } from '@/services/employeeService';
+import { Input } from "@/components/ui/input";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+import { deleteEmployee, getEmployees, EmployeeResponse, EmployeeFilters } from '@/services/employeeService';
+import { getDepartments, DepartmentResponse } from '@/services/departmentService';
+import { getEmploymentStatuses, EmploymentStatusResponse } from '@/services/employmentstatusService';
+
+const NO_SELECTION_SENTINEL = "__NO_SELECTION__";
+
+const DEBOUNCE_DELAY = 500;
 
 const EmployeeListPage: React.FC = () => {
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
     const [employeeToDelete, setEmployeeToDelete] = useState<EmployeeResponse | null>(null);
+    const [filters, setFilters] = useState<EmployeeFilters>({});
+    const [currentSearchInput, setCurrentSearchInput] = useState<string>('');
+    const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
     const queryClient = useQueryClient();
 
+    useEffect(() => {
+        if (debounceTimerRef.current) {
+            clearTimeout(debounceTimerRef.current);
+        }
+        debounceTimerRef.current = setTimeout(() => {
+            setFilters(prevFilters => ({
+                ...prevFilters,
+                searchTerm: currentSearchInput || undefined,
+            }));
+        }, DEBOUNCE_DELAY);
+
+        return () => {
+            if (debounceTimerRef.current) {
+                clearTimeout(debounceTimerRef.current);
+            }
+        };
+    }, [currentSearchInput, setFilters]);
+
+    const handleSearchInputChange = (event: ChangeEvent<HTMLInputElement>) => {
+        setCurrentSearchInput(event.target.value);
+    };
+
+    const handleDepartmentChange = (value: string) => {
+        setFilters(prevFilters => ({
+            ...prevFilters,
+            departmentId: value === NO_SELECTION_SENTINEL ? undefined : value,
+        }));
+    };
+
+    const handleManagerChange = (value: string) => {
+        setFilters(prevFilters => ({
+            ...prevFilters,
+            managerId: value === NO_SELECTION_SENTINEL ? undefined : value,
+        }));
+    };
+
+    const handleStatusChange = (value: string) => {
+        setFilters(prevFilters => ({
+            ...prevFilters,
+            statusId: value === NO_SELECTION_SENTINEL ? undefined : value,
+        }));
+    };
+
     const {
         data: employees = [],
-        isLoading,
-        isError,
-        error
+        isLoading: isLoadingEmployees,
+        isError: isErrorEmployees,
+        error: errorEmployees
     } = useQuery<EmployeeResponse[], Error>({
-        queryKey: ['employees'],
-        queryFn: getEmployees,
+        queryKey: ['employees', filters],
+        queryFn: () => getEmployees(filters),
+    });
+
+    const { data: departments = [] } = useQuery<DepartmentResponse[], Error>({
+        queryKey: ['departments'],
+        queryFn: getDepartments,
+    });
+
+    const { data: managers = [] } = useQuery<EmployeeResponse[], Error>({
+        queryKey: ['allEmployeesForManagerFilter'],
+        queryFn: () => getEmployees(),
+    });
+
+    const { data: employmentStatuses = [] } = useQuery<EmploymentStatusResponse[], Error>({
+        queryKey: ['employmentStatuses'],
+        queryFn: getEmploymentStatuses,
     });
 
     const deleteMutation = useMutation({
@@ -75,7 +150,7 @@ const EmployeeListPage: React.FC = () => {
     };
 
     const renderTableContent = () => {
-        if (isLoading) {
+        if (isLoadingEmployees) {
             return (
                 <TableRow>
                     <TableCell colSpan={3} className="h-24 text-center">
@@ -85,11 +160,11 @@ const EmployeeListPage: React.FC = () => {
             );
         }
 
-        if (isError) {
+        if (isErrorEmployees) {
             return (
                 <TableRow>
-                    <TableCell colSpan={3} className="h-24 text-center text-destructive">
-                        Error loading employees: {error?.message || 'Unknown error'}
+                    <TableCell colSpan={7} className="h-24 text-center text-destructive">
+                        Error loading employees: {errorEmployees?.message || 'Unknown error'}
                     </TableCell>
                 </TableRow>
             );
@@ -145,6 +220,53 @@ const EmployeeListPage: React.FC = () => {
                     </Button>
                 </CardHeader>
                 <CardContent>
+                    <div className="mb-4 flex flex-wrap gap-4">
+                        <Input
+                            placeholder="Search employees..."
+                            value={currentSearchInput}
+                            onChange={handleSearchInputChange}
+                            className="max-w-xs flex-grow"
+                        />
+                        <Select value={filters.departmentId || NO_SELECTION_SENTINEL} onValueChange={handleDepartmentChange}>
+                            <SelectTrigger className="max-w-xs flex-grow">
+                                <SelectValue placeholder="Filter by Department" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value={NO_SELECTION_SENTINEL}>All Departments</SelectItem>
+                                {departments.map(dept => (
+                                    <SelectItem key={dept.departmentId} value={String(dept.departmentId)}>
+                                        {dept.departmentName}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                        <Select value={filters.managerId || NO_SELECTION_SENTINEL} onValueChange={handleManagerChange}>
+                            <SelectTrigger className="max-w-xs flex-grow">
+                                <SelectValue placeholder="Filter by Manager" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value={NO_SELECTION_SENTINEL}>All Managers</SelectItem>
+                                {managers.map(manager => (
+                                    <SelectItem key={manager.id} value={String(manager.id)}>
+                                        {manager.firstName} {manager.lastName}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                        <Select value={filters.statusId || NO_SELECTION_SENTINEL} onValueChange={handleStatusChange}>
+                            <SelectTrigger className="max-w-xs flex-grow">
+                                <SelectValue placeholder="Filter by Status" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value={NO_SELECTION_SENTINEL}>All Statuses</SelectItem>
+                                {employmentStatuses.map(status => (
+                                    <SelectItem key={status.id} value={String(status.id)}>
+                                        {status.statusName}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
                     <Table>
                         <TableHeader>
                             <TableRow>

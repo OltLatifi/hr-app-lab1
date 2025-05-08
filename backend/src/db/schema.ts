@@ -247,6 +247,7 @@ export const payroll = pgTable('payroll', {
   payPeriodStartDate: date('pay_period_start_date').notNull(),
   payPeriodEndDate: date('pay_period_end_date').notNull(),
   netPay: integer('net_pay').notNull(),
+  grossPay: integer('gross_pay').notNull(),
   paymentDate: date('payment_date'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
@@ -263,6 +264,23 @@ export const payrollRelations = relations(payroll, ({ one }) => ({
   company: one(company, {
     fields: [payroll.companyId],
     references: [company.id],
+  }),
+}));
+
+export const payLimits = pgTable('paylimit', {
+  id: serial('id').primaryKey(),
+  limit: integer('limit').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  departmentId: integer('department_id')
+    .notNull()
+    .references(() => departments.departmentId),
+});
+
+export const payLimitsRelations = relations(payLimits, ({ one }) => ({
+  department: one(departments, {
+    fields: [payLimits.departmentId],
+    references: [departments.departmentId],
   }),
 }));
 

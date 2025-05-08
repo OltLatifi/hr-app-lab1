@@ -27,8 +27,18 @@ export const findAll = async (req: Request, res: Response): Promise<Response> =>
         return res.status(401).json({ message: 'Unauthorized' });
     }
 
+    // Extract filter parameters from query string
+    const { departmentId, managerId, statusId, searchTerm } = req.query;
+
+    const filters = {
+        departmentId: departmentId as string | undefined,
+        managerId: managerId as string | undefined,
+        statusId: statusId as string | undefined,
+        searchTerm: searchTerm as string | undefined,
+    };
+
     try {
-        const employees = await employeeService.getAllEmployees(companyId);
+        const employees = await employeeService.getAllEmployees(companyId, filters);
         return res.status(200).json(employees);
     } catch (error) {
         console.error('Error fetching employees:', error);
