@@ -17,6 +17,7 @@ import companyRoutes from './routes/company.routes';
 import trainingRouter from './routes/training.route';
 import benefitRouter from './routes/benefit.route';
 import leaveTypeRouter from './routes/leavetype.route';
+import payrollRouter from './routes/payroll.route';
 
 export const application = express();
 export let httpServer: ReturnType<typeof http.createServer>;
@@ -40,6 +41,7 @@ export const Main = () => {
     application.use('/admin', adminRoutes);
     application.use('/companies', companyRoutes);
     application.use('/trainings', trainingRouter);
+    application.use('/payrolls', payrollRouter);
     application.use('/benefits', benefitRouter);
     application.use('/leavetypes', leaveTypeRouter);
     application.use(routeNotFound);
