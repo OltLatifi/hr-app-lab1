@@ -32,8 +32,8 @@ const PayrollChart = () => {
         : [];
 
     return (
-        <div className="flex items-start justify-start h-full">
-            <div className="w-full max-w-2xl bg-white rounded-xl shadow p-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 h-full">
+            <div className="bg-white rounded-xl shadow p-6">
                 <div className="mb-4">
                     <h2 className="text-2xl font-bold text-gray-900">Payroll Overview</h2>
                 <p className="text-gray-500 text-sm">Total payroll for the last 6 months</p>
