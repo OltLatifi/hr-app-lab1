@@ -79,3 +79,13 @@ export const getPayrollsByMonth = async (): Promise<Record<number, number>> => {
         throw error;
     }
 };
+
+export const getPayrollsByDepartment = async (): Promise<Record<number, number>> => {
+    try {
+        const response = await apiClient.get('/payrolls/calculate-by-department');
+        return response.data;
+    } catch (error) {
+        console.error('API Error Fetching Payrolls by Department:', error);
+        throw error;
+    }
+};

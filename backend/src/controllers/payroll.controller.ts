@@ -135,3 +135,20 @@ export const calculateByMonth = async (req: Request, res: Response): Promise<Res
         return res.status(500).json({ message: 'Failed to calculate payrolls by month' });
     }
 };
+
+
+export const calculateByDepartment = async (req: Request, res: Response): Promise<Response> => {
+    const companyId = req.user?.companyId;
+
+    if(!companyId){
+        return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    try {
+        const payrolls = await payrollService.calculatePayrollsByDepartment(companyId);
+        return res.status(200).json(payrolls);
+    } catch (error) {
+        console.error('Error calculating payrolls by department:', error);
+        return res.status(500).json({ message: 'Failed to calculate payrolls by department' });
+    }
+};

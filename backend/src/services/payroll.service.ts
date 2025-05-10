@@ -101,3 +101,35 @@ export const calculatePayrollsByMonth = async (companyId: number): Promise<Recor
 
     return payrollsByMonth;
 };
+
+/**
+ * Calculates payrolls by department for a specific company.
+ * @param companyId - The ID of the company.
+ * @returns A record of the total gross pay for each department.
+ */
+export const calculatePayrollsByDepartment = async (companyId: number): Promise<Record<number, number>> => {
+    const results = await db.query.payroll.findMany({
+        where: eq(payroll.companyId, companyId),
+        with: {
+            employee: {
+                with: {
+                    department: true,
+                },
+            },
+        },
+    });
+
+    const payrollsByDepartment: Record<string, number> = {};
+
+    results.forEach((curr) => {
+        const start = new Date(curr.payPeriodStartDate);
+        const end = new Date(curr.payPeriodEndDate);
+        let current = new Date(start);
+
+        const department = curr.employee.department.departmentName
+        payrollsByDepartment[department] = (payrollsByDepartment[department] || 0) + curr.grossPay;
+        current.setMonth(current.getMonth() + 1, 1);
+    });
+
+    return payrollsByDepartment;
+};
