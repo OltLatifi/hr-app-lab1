@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuthStore } from '@/stores/auth-store';
+import { X } from 'lucide-react';
 
 interface SidebarProps {
     isMobileOpen: boolean;
@@ -18,7 +19,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onCloseMobile }) => {
         <Link 
             to="/admin" 
             className="block py-2 px-2 hover:bg-gray-700 rounded transition-colors duration-150"
-            onClick={onCloseMobile} // Close sidebar on link click on mobile
+            onClick={onCloseMobile}
         >
             Admin
         </Link>
@@ -31,6 +32,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onCloseMobile }) => {
             <Link to="/jobtitles" className="block py-2 px-2 hover:bg-gray-700 rounded transition-colors duration-150" onClick={onCloseMobile}>Job Titles</Link>
             <Link to="/trainings" className="block py-2 px-2 hover:bg-gray-700 rounded transition-colors duration-150" onClick={onCloseMobile}>Trainings</Link>
             <Link to="/benefits" className="block py-2 px-2 hover:bg-gray-700 rounded transition-colors duration-150" onClick={onCloseMobile}>Benefits</Link>
+            <Link to="/payrolls" className="block py-2 px-2 hover:bg-gray-700 rounded transition-colors duration-150" onClick={onCloseMobile}>Payrolls</Link>
         </>
     );
 
@@ -45,7 +47,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onCloseMobile }) => {
         <div 
             className={`bg-gray-800 text-white w-64 h-screen p-4 fixed top-0 left-0 flex flex-col z-30 transform transition-transform duration-300 ease-in-out 
                         ${isMobileOpen ? 'translate-x-0' : '-translate-x-full'} 
-                        md:translate-x-0 md:sticky md:z-auto`} // Sticky for desktop layout
+                        md:translate-x-0 md:sticky md:z-auto`}
         >
             <div className="flex justify-between items-center mb-6">
                 <div className="text-2xl font-bold">
@@ -56,10 +58,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onCloseMobile }) => {
                     className="md:hidden p-1 text-gray-300 hover:text-white focus:outline-none"
                     aria-label="Close sidebar"
                 >
-                    {/* Simple X icon */}
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
+                    <X className="w-6 h-6" />
                 </button>
             </div>
 

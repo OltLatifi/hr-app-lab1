@@ -26,7 +26,13 @@ export const findPayrollById = async (payrollId: number, companyId: number): Pro
  * @returns A list of all payroll objects for the company.
  */
 export const getAllPayrolls = async (companyId: number): Promise<Array<Payroll>> => {
-    return await db.select().from(payroll).where(eq(payroll.companyId, companyId));
+    const results = await db.query.payroll.findMany({
+        where: eq(payroll.companyId, companyId),
+        with: {
+            employee: true,
+        },
+    });
+    return results;
 };
 
 /**

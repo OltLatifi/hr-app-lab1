@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import * as trainingController from '../controllers/training.controller';
+import * as payrollController from '../controllers/payroll.controller';
 import { authenticateToken } from '../middleware/auth.middleware';
 import { validateRequest } from '../middleware/validateRequest.middleware';
 import { createPayrollSchema, updatePayrollSchema } from '../validation/payroll.validation';
@@ -8,10 +8,10 @@ const router = Router();
 
 router.use(authenticateToken);
 
-router.post('/', validateRequest(createPayrollSchema), trainingController.create);
-router.get('/', trainingController.findAll);
-router.get('/:id', trainingController.findOne);
-router.put('/:id', validateRequest(updatePayrollSchema), trainingController.update);
-router.delete('/:id', trainingController.remove);
+router.post('/', validateRequest(createPayrollSchema), payrollController.create);
+router.get('/', payrollController.findAll);
+router.get('/:id', payrollController.findOne);
+router.put('/:id', validateRequest(updatePayrollSchema), payrollController.update);
+router.delete('/:id', payrollController.remove);
 
 export default router; 

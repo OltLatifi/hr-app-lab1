@@ -248,7 +248,6 @@ export const payroll = pgTable('payroll', {
   payPeriodEndDate: date('pay_period_end_date').notNull(),
   netPay: integer('net_pay').notNull(),
   grossPay: integer('gross_pay').notNull(),
-  paymentDate: date('payment_date'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
   companyId: integer('company_id')

@@ -28,7 +28,12 @@ export const findAll = async (req: Request, res: Response): Promise<Response> =>
 
     try {
         const payrolls = await payrollService.getAllPayrolls(companyId);
-        return res.status(200).json(payrolls);
+        const formattedPayrolls = payrolls.map(payroll => ({
+            ...payroll,
+            netPay: payroll.netPay / 100,
+            grossPay: payroll.grossPay / 100
+        }));
+        return res.status(200).json(formattedPayrolls);
     } catch (error) {
         console.error('Error fetching payrolls:', error);
         return res.status(500).json({ message: 'Failed to fetch payrolls' });
@@ -51,7 +56,13 @@ export const findOne = async (req: Request, res: Response): Promise<Response> =>
         if (!payroll) {
             return res.status(404).json({ message: 'Payroll not found' });
         }
-        return res.status(200).json(payroll);
+
+        const formattedPayroll = {
+            ...payroll,
+            netPay: payroll.netPay / 100,
+            grossPay: payroll.grossPay / 100
+        };
+        return res.status(200).json(formattedPayroll);
     } catch (error) {
         console.error('Error fetching payroll:', error);
         return res.status(500).json({ message: 'Failed to fetch payroll' });
@@ -74,7 +85,12 @@ export const update = async (req: Request, res: Response): Promise<Response> => 
         if (!payroll) {
             return res.status(404).json({ message: 'Payroll not found' });
         }
-        return res.status(200).json(payroll);
+        const formattedPayroll = {
+            ...payroll,
+            netPay: payroll.netPay / 100,
+            grossPay: payroll.grossPay / 100
+        };
+        return res.status(200).json(formattedPayroll);
     } catch (error) {
         console.error('Error updating payroll:', error);
         return res.status(500).json({ message: 'Failed to update payroll' });
