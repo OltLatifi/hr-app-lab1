@@ -40,14 +40,8 @@ import PayrollListPage from './pages/payroll/list-page';
 import PayrollAddPage from './pages/payroll/create-page';
 import PayrollUpdatePage from './pages/payroll/update-page';
 
-const HomePage: React.FC = () => {
-  return (
-    <div>
-      <h1>Welcome!</h1>
-      <p>This is your protected home page.</p>
-    </div>
-  );
-};
+import HomePage from './pages/home/index';
+
 
 function AppContent() {
   return (

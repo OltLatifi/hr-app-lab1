@@ -66,6 +66,7 @@ const PayrollCreatePage: React.FC = () => {
         mutationFn: (data: PayrollFormValues) => createPayroll(data),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['payrolls'] });
+            queryClient.invalidateQueries({ queryKey: ['payrollsByMonth'] });
             navigate('/payrolls');
         },
         onError: (error: any) => {

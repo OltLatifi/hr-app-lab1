@@ -125,6 +125,7 @@ const PayrollUpdatePage: React.FC = () => {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['payrolls'] });
             queryClient.invalidateQueries({ queryKey: ['payroll', payrollId] });
+            queryClient.invalidateQueries({ queryKey: ['payrollsByMonth'] });
             navigate('/payrolls');
         },
         onError: (error: any) => {

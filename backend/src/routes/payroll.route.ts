@@ -10,6 +10,7 @@ router.use(authenticateToken);
 
 router.post('/', validateRequest(createPayrollSchema), payrollController.create);
 router.get('/', payrollController.findAll);
+router.get('/calculate-by-month', payrollController.calculateByMonth);
 router.get('/:id', payrollController.findOne);
 router.put('/:id', validateRequest(updatePayrollSchema), payrollController.update);
 router.delete('/:id', payrollController.remove);

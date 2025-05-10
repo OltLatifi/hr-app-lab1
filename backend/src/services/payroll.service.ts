@@ -1,6 +1,6 @@
 import db from "../db";
 import { payroll } from "../db/schema";
-import { eq, and } from "drizzle-orm";
+import { eq, and, gte, lte } from "drizzle-orm";
 
 type Payroll = typeof payroll.$inferSelect;
 type PayrollOrNull = Payroll | null;
@@ -73,4 +73,31 @@ export const deletePayroll = async (payrollId: number, companyId: number): Promi
         .returning();
     
     return result.length > 0 ? result[0] : null;
+};
+
+/**
+ * Calculates payrolls by month for a specific company.
+ * @param companyId - The ID of the company.
+ * @returns A record of the total gross pay for each month.
+ */
+export const calculatePayrollsByMonth = async (companyId: number): Promise<Record<number, number>> => {
+    const results = await db.query.payroll.findMany({
+        where: eq(payroll.companyId, companyId),
+    });
+
+    const payrollsByMonth: Record<number, number> = {};
+
+    results.forEach((curr) => {
+        const start = new Date(curr.payPeriodStartDate);
+        const end = new Date(curr.payPeriodEndDate);
+        let current = new Date(start);
+
+        while (current <= end) {
+            const month = current.getMonth();
+            payrollsByMonth[month] = (payrollsByMonth[month] || 0) + curr.grossPay;
+            current.setMonth(current.getMonth() + 1, 1);
+        }
+    });
+
+    return payrollsByMonth;
 };

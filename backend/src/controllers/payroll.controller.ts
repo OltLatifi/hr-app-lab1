@@ -118,4 +118,20 @@ export const remove = async (req: Request, res: Response): Promise<Response> => 
         console.error('Error deleting training:', error);
         return res.status(500).json({ message: 'Failed to delete training' });
     }
-}; 
+};
+
+export const calculateByMonth = async (req: Request, res: Response): Promise<Response> => {
+    const companyId = req.user?.companyId;
+
+    if(!companyId){
+        return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    try {
+        const payrolls = await payrollService.calculatePayrollsByMonth(companyId);
+        return res.status(200).json(payrolls);
+    } catch (error) {
+        console.error('Error calculating payrolls by month:', error);
+        return res.status(500).json({ message: 'Failed to calculate payrolls by month' });
+    }
+};

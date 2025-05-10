@@ -69,3 +69,13 @@ export const updatePayroll = async (payrollId: number, payrollData: CreatePayrol
         throw error;
     }
 };
+
+export const getPayrollsByMonth = async (): Promise<Record<number, number>> => {
+    try {
+        const response = await apiClient.get('/payrolls/calculate-by-month');
+        return response.data;
+    } catch (error) {
+        console.error('API Error Fetching Payrolls by Month:', error);
+        throw error;
+    }
+};
