@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-
 import {
     useQuery,
     useMutation,
@@ -34,9 +33,14 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card";
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { AlertCircle } from 'lucide-react';
+import { getPayLimitByDepartmentId, PayLimitResponse } from '@/services/paylimitService';
+import { getPayrollsByDepartment } from '@/services/payrollService';
 
 const DepartmentListPage: React.FC = () => {
+    const navigate = useNavigate();
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
     const [departmentToDelete, setDepartmentToDelete] = useState<DepartmentResponse | null>(null);
 
@@ -50,6 +54,23 @@ const DepartmentListPage: React.FC = () => {
     } = useQuery<DepartmentResponse[], Error>({
         queryKey: ['departments'],
         queryFn: getDepartments,
+    });
+
+    const { data: payLimits = [] } = useQuery<(PayLimitResponse | null)[], Error>({
+        queryKey: ['paylimits'],
+        queryFn: () => Promise.all(
+            departments.map(dept => 
+                getPayLimitByDepartmentId(dept.departmentId)
+                    .catch(() => null)
+            )
+        ),
+        enabled: departments.length > 0,
+    });
+
+    const { data: departmentPayrolls = {} } = useQuery<Record<number, number>, Error>({
+        queryKey: ['departmentPayrolls'],
+        queryFn: getPayrollsByDepartment,
+        enabled: departments.length > 0,
     });
 
     const deleteMutation = useMutation({
@@ -76,6 +97,10 @@ const DepartmentListPage: React.FC = () => {
     const handleDeleteConfirm = () => {
         if (!departmentToDelete) return;
         deleteMutation.mutate(departmentToDelete.departmentId);
+    };
+
+    const handleAddPayLimit = (departmentId: number) => {
+        navigate(`/paylimits/add/${departmentId}`);
     };
 
     const renderTableContent = () => {
@@ -109,25 +134,72 @@ const DepartmentListPage: React.FC = () => {
             );
         }
 
-        return departments.map((dept) => (
-            <TableRow key={dept.departmentId}>
-                <TableCell className="font-medium w-[100px]">{dept.departmentId}</TableCell>
-                <TableCell>{dept.departmentName}</TableCell>
-                <TableCell className="text-right space-x-2">
-                    <Button asChild variant="outline" size="sm">
-                        <Link to={`/departments/edit/${dept.departmentId}`}>Edit</Link>
-                    </Button>
-                    <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => openDeleteModal(dept)}
-                        disabled={deleteMutation.isPending && deleteMutation.variables === dept.departmentId}
-                    >
-                        {deleteMutation.isPending && deleteMutation.variables === dept.departmentId ? 'Deleting...' : 'Delete'}
-                    </Button>
-                </TableCell>
-            </TableRow>
-        ));
+        return departments.map((dept) => {
+            const payLimit = payLimits.find((limit): limit is PayLimitResponse => 
+                limit !== null && limit.departmentId === dept.departmentId
+            );
+            const departmentTotalPayroll = departmentPayrolls[dept.departmentId] || 0;
+            console.log(departmentTotalPayroll);
+            console.log(payLimit);
+            console.log(dept)
+            console.log(payLimits);
+            const exceedsPayLimit = payLimit && departmentTotalPayroll > payLimit.limit;
+            
+            return (
+                <React.Fragment key={dept.departmentId}>
+                    <TableRow>
+                        <TableCell className="font-medium w-[100px]">{dept.departmentId}</TableCell>
+                        <TableCell>{dept.departmentName}</TableCell>
+                        <TableCell className="text-right space-x-2">
+                            <Button asChild variant="outline" size="sm">
+                                <Link to={`/departments/edit/${dept.departmentId}`}>Edit</Link>
+                            </Button>
+                            <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={() => openDeleteModal(dept)}
+                                disabled={deleteMutation.isPending && deleteMutation.variables === dept.departmentId}
+                            >
+                                {deleteMutation.isPending && deleteMutation.variables === dept.departmentId ? 'Deleting...' : 'Delete'}
+                            </Button>
+                        </TableCell>
+                    </TableRow>
+                    {!payLimit && (
+                        <TableRow>
+                            <TableCell colSpan={3} className="p-0">
+                                <Alert 
+                                    variant="default" 
+                                    className="cursor-pointer bg-gray-200 m-2"
+                                    onClick={() => handleAddPayLimit(dept.departmentId)}
+                                >
+                                    <AlertCircle className="h-4 w-4" />
+                                    <AlertTitle>No Pay Limit Set</AlertTitle>
+                                    <AlertDescription>
+                                        Click here to set up a pay limit for {dept.departmentName}
+                                    </AlertDescription>
+                                </Alert>
+                            </TableCell>
+                        </TableRow>
+                    )}
+                    {exceedsPayLimit && (
+                        <TableRow>
+                            <TableCell colSpan={3} className="p-0">
+                                <Alert 
+                                    variant="destructive" 
+                                    className="m-2"
+                                >
+                                    <AlertCircle className="h-4 w-4" />
+                                    <AlertTitle>Pay Limit Exceeded</AlertTitle>
+                                    <AlertDescription>
+                                        Total payroll ({(departmentTotalPayroll/100).toLocaleString()}) exceeds the pay limit ({payLimit?.limit.toLocaleString()}) for {dept.departmentName}
+                                    </AlertDescription>
+                                </Alert>
+                            </TableCell>
+                        </TableRow>
+                    )}
+                </React.Fragment>
+            );
+        });
     };
 
     return (

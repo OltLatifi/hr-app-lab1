@@ -1,6 +1,6 @@
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { useQuery } from '@tanstack/react-query';
-import { getPayrollsByDepartment } from '@/services/payrollService';
+import { getStatisticsByDepartment } from '@/services/payrollService';
 
 interface DepartmentStats {
     departmentName: string;
@@ -10,7 +10,7 @@ interface DepartmentStats {
 const DepartmentChart = () => {
     const { data: payrollData = [], isLoading: payrollLoading } = useQuery<Record<number, number>>({
         queryKey: ['payrollsByDepartment'],
-        queryFn: () => getPayrollsByDepartment(),
+        queryFn: () => getStatisticsByDepartment(),
     });
 
     const getDepartmentStats = (payrollData: Record<string, number>): DepartmentStats[] => {

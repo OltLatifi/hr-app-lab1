@@ -107,7 +107,7 @@ export const calculatePayrollsByMonth = async (companyId: number): Promise<Recor
  * @param companyId - The ID of the company.
  * @returns A record of the total gross pay for each department.
  */
-export const calculatePayrollsByDepartment = async (companyId: number): Promise<Record<number, number>> => {
+export const calculatePayrollsByDepartment = async (companyId: number): Promise<Record<string, number>> => {
     const results = await db.query.payroll.findMany({
         where: eq(payroll.companyId, companyId),
         with: {
