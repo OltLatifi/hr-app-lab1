@@ -10,6 +10,7 @@ router.use(authenticateToken);
 
 router.post('/', validateRequest(createPayLimitSchema), payLimitController.create);
 router.get('/', payLimitController.findAll);
+router.get('/department/:id', payLimitController.findByDepartmentId);
 router.get('/:id', payLimitController.findOne);
 router.put('/:id', validateRequest(updatePayLimitSchema), payLimitController.update);
 router.delete('/:id', payLimitController.remove);

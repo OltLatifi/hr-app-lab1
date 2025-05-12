@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { createPayLimit, CreatePayLimitPayload } from '@/services/paylimitService';
 import { getDepartments, DepartmentResponse } from '@/services/departmentService';
 import { Button } from '@/components/ui/button';
@@ -35,7 +35,7 @@ export type PayLimitFormValues = z.infer<typeof formSchema>;
 const PayLimitCreatePage: React.FC = () => {
     const navigate = useNavigate();
     const queryClient = useQueryClient();
-
+    const { departmentId } = useParams<{ departmentId: string }>();
     const { data: departments = [] } = useQuery<DepartmentResponse[]>({
         queryKey: ['departments'],
         queryFn: getDepartments,
@@ -45,7 +45,7 @@ const PayLimitCreatePage: React.FC = () => {
         resolver: zodResolver(formSchema),
         defaultValues: {
             limit: 0,
-            departmentId: 0,
+            departmentId: departmentId ? Number(departmentId) : 0,
         },
     });
 
@@ -56,7 +56,7 @@ const PayLimitCreatePage: React.FC = () => {
             navigate('/paylimits');
         },
         onError: (error: any) => {
-            console.error('Create department mutation error:', error);
+            console.error('Create pay limit mutation error:', error);
         },
     });
 
@@ -104,6 +104,7 @@ const PayLimitCreatePage: React.FC = () => {
                                         <Select 
                                             onValueChange={(value) => field.onChange(Number(value))}
                                             defaultValue={field.value?.toString()}
+                                            value={field.value?.toString()}
                                             disabled={isLoading}
                                         >
                                             <FormControl>

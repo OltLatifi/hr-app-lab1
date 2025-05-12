@@ -32,6 +32,10 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
+import { PayLimitResponse } from '@/services/paylimitService';
+import { getPayLimitByDepartmentId } from '@/services/paylimitService';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { AlertCircle } from 'lucide-react';
 
 const formSchema = z.object({
     departmentName: z
@@ -48,6 +52,18 @@ const DepartmentUpdatePage: React.FC = () => {
     const departmentId = Number(id);
     const queryClient = useQueryClient();
 
+    const { data: payLimits = [], isLoading: isLoadingPayLimits } = useQuery<PayLimitResponse>({
+        queryKey: ['paylimits', departmentId],
+        queryFn: () => getPayLimitByDepartmentId(departmentId),
+        enabled: !!departmentId
+    });
+
+    const hasNoPayLimits = !isLoadingPayLimits && (!payLimits || (Array.isArray(payLimits) && payLimits.length === 0));
+
+    const handleNavigateToPayLimits = () => {
+        navigate(`/paylimits/add/${departmentId}`);
+    };
+
     const {
         data: department,
         isLoading: isQueryLoading,
@@ -56,7 +72,7 @@ const DepartmentUpdatePage: React.FC = () => {
     } = useQuery<DepartmentResponse, Error>({
         queryKey: ['department', departmentId],
         queryFn: () => getDepartmentById(departmentId),
-        enabled: !!departmentId, // Only run query if departmentId is valid
+        enabled: !!departmentId,
     });
 
     const form = useForm<DepartmentFormValues>({
@@ -84,7 +100,6 @@ const DepartmentUpdatePage: React.FC = () => {
         },
         onError: (error: any) => {
             console.error('Update department mutation error:', error);
-            // TODO: Show user-friendly error message
         },
     });
 
@@ -120,57 +135,70 @@ const DepartmentUpdatePage: React.FC = () => {
         }
 
         return (
-             <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                    <FormField
-                        control={form.control}
-                        name="departmentName"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Department Name</FormLabel>
-                                <FormControl>
-                                    <Input
-                                        placeholder="e.g., Human Resources"
-                                        {...field}
-                                        disabled={isLoading}
-                                    />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                    <div className="flex justify-end space-x-2">
-                        <Button
-                            variant="outline"
-                            type="button"
-                            onClick={() => navigate('/departments')}
-                            disabled={isLoading}
-                        >
-                            Cancel
-                        </Button>
-                        <Button type="submit" disabled={isLoading}>
-                            {isMutationLoading ? 'Saving...' : 'Save Changes'}
-                        </Button>
-                    </div>
-                </form>
-            </Form>
+            <div className="space-y-6">
+                <Form {...form}>
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                        <FormField
+                            control={form.control}
+                            name="departmentName"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Department Name</FormLabel>
+                                    <FormControl>
+                                        <Input
+                                            placeholder="e.g., Human Resources"
+                                            {...field}
+                                            disabled={isLoading}
+                                        />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <div className="flex justify-end space-x-2">
+                            <Button
+                                variant="outline"
+                                type="button"
+                                onClick={() => navigate('/departments')}
+                                disabled={isLoading}
+                            >
+                                Cancel
+                            </Button>
+                            <Button type="submit" disabled={isLoading}>
+                                {isMutationLoading ? 'Saving...' : 'Save Changes'}
+                            </Button>
+                        </div>
+                    </form>
+                </Form>
+            </div>
         );
     }
 
     return (
-        <div className="flex justify-center items-start min-h-screen p-4 pt-10">
-            <Card className="w-full max-w-lg">
-                <CardHeader>
-                    <CardTitle>Update Department</CardTitle>
-                    <CardDescription>
-                        Modify the details for the department.
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    {renderFormContent()}
-                </CardContent>
-            </Card>
-        </div>
+        <>
+            {hasNoPayLimits && (
+                <Alert variant="default" className="cursor-pointer bg-gray-200" onClick={handleNavigateToPayLimits}>
+                    <AlertCircle className="h-4 w-4" />
+                <AlertTitle>No Pay Limits Found</AlertTitle>
+                <AlertDescription>
+                    Click here to set up pay limits for this department
+                </AlertDescription>
+            </Alert>
+            )}
+            <div className="flex justify-center items-start min-h-screen p-4 pt-10">
+                <Card className="w-full max-w-lg">
+                    <CardHeader>
+                        <CardTitle>Update Department</CardTitle>
+                        <CardDescription>
+                            Modify the details for the department.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        {renderFormContent()}
+                    </CardContent>
+                </Card>
+            </div>
+        </>
     );
 };
 

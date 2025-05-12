@@ -35,6 +35,22 @@ export const findAll = async (req: Request, res: Response): Promise<Response> =>
     }
 };
 
+export const findByDepartmentId = async (req: Request, res: Response): Promise<Response> => {
+    const companyId = req.user?.companyId;
+    const departmentId = parseInt(req.params.id, 10);
+    if(!companyId){
+        return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    try {
+        const payLimit = await payLimitService.findPayLimitByDepartmentId(departmentId);
+        return res.status(200).json(payLimit);
+    } catch (error) {
+        console.error('Error fetching pay limit:', error);
+        return res.status(500).json({ message: 'Failed to fetch pay limit' });
+    }
+}
+
 export const findOne = async (req: Request, res: Response): Promise<Response> => {
     const companyId = req.user?.companyId;
 

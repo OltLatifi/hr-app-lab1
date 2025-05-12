@@ -55,6 +55,16 @@ export const getPayLimitById = async (payLimitId: number): Promise<PayLimitRespo
     }
 }; 
 
+export const getPayLimitByDepartmentId = async (departmentId: number): Promise<PayLimitResponse> => {
+    try {
+        const response = await apiClient.get<PayLimitResponse>(`/paylimits/department/${departmentId}`);
+        return response.data;
+    } catch (error) {
+        console.error('API Error Fetching Pay Limit by ID:', error);
+        throw error;
+    }
+}; 
+
 export const updatePayLimit = async (payLimitId: number, payLimitData: CreatePayLimitPayload): Promise<PayLimitResponse> => {
     try {
         const response = await apiClient.put<PayLimitResponse>(`/paylimits/${payLimitId}`, payLimitData);

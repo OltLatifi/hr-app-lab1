@@ -22,6 +22,19 @@ export const findPayLimitById = async (payLimitId: number) => {
 };
 
 /**
+ * Finds a pay limit by their ID and company ID.
+ * @param payLimitId - The ID of the pay limit to find.
+ * @returns The pay limit object or null if not found.
+ */
+export const findPayLimitByDepartmentId = async (departmentId: number) => {
+    const result = await db.query.payLimits.findFirst({
+        where: eq(payLimits.departmentId, departmentId),
+    });
+
+    return result;
+};
+
+/**
  * Retrieves all pay limits for a specific department.
  * @param companyId - The ID of the company.
  * @returns A list of all pay limit objects for the company.

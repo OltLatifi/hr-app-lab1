@@ -93,6 +93,7 @@ function AppContent() {
 
             <Route path="/paylimits" element={<PayLimitListPage />} />
             <Route path="/paylimits/add" element={<PayLimitAddPage />} />
+            <Route path="/paylimits/add/:departmentId" element={<PayLimitAddPage />} />
             <Route path="/paylimits/edit/:id" element={<PayLimitUpdatePage />} />
 
             <Route path="/admin" element={<AdminPage />} />
