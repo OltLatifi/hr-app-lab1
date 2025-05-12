@@ -1,6 +1,6 @@
 import db from "../db";
-import { payLimits } from "../db/schema";
-import { eq, and } from "drizzle-orm";
+import { payLimits, departments } from "../db/schema";
+import { eq, inArray } from "drizzle-orm";
 
 type PayLimit = typeof payLimits.$inferSelect;
 type PayLimitOrNull = PayLimit | null;
@@ -10,22 +10,35 @@ type PayLimitOrNull = PayLimit | null;
  * @param payLimitId - The ID of the pay limit to find.
  * @returns The pay limit object or null if not found.
  */
-export const findPayLimitById = async (payLimitId: number): Promise<PayLimitOrNull> => {
-    const result = await db.select()
-    .from(payLimits)
-    .where(eq(payLimits.id, payLimitId))
-    .limit(1);
+export const findPayLimitById = async (payLimitId: number) => {
+    const result = await db.query.payLimits.findFirst({
+        where: eq(payLimits.id, payLimitId),
+        with: {
+            department: true
+        }
+    });
 
-    return result.length > 0 ? result[0] : null;
+    return result;
 };
 
 /**
  * Retrieves all pay limits for a specific department.
- * @param departmentId - The ID of the department.
- * @returns A list of all pay limit objects for the department.
+ * @param companyId - The ID of the company.
+ * @returns A list of all pay limit objects for the company.
  */
-export const getAllPayLimits = async (departmentId: number): Promise<Array<PayLimit>> => {
-    return await db.select().from(payLimits).where(eq(payLimits.departmentId, departmentId));
+export const getAllPayLimits = async (companyId: number): Promise<Array<PayLimit>> => {
+    const departmentsResult = await db.select().from(departments).where(eq(departments.companyId, companyId));
+    if (!departmentsResult) {
+        throw new Error('No departments found for company');
+    }
+
+    const result = await db.query.payLimits.findMany({
+        where: inArray(payLimits.departmentId, departmentsResult.map(d => d.departmentId)),
+        with: {
+            department: true
+        }
+    });
+    return result;
 };
 
 /**
@@ -57,7 +70,6 @@ export const updatePayLimit = async (payLimitId: number, data: Partial<typeof pa
 /**
  * Deletes a pay limit.
  * @param payLimitId - The ID of the pay limit to delete.
- * @param departmentId - The ID of the department the pay limit belongs to.
  * @returns The deleted pay limit object or null if not found.
  */
 export const deletePayLimit = async (payLimitId: number): Promise<PayLimitOrNull> => {

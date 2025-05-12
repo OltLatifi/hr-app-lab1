@@ -122,9 +122,9 @@ const EmployeeUpdatePage: React.FC = () => {
         queryFn: getDepartments
     });
 
-    const { data: employees } = useQuery({
+    const { data: employees } = useQuery<EmployeeResponse[]>({
         queryKey: ['employees'],
-        queryFn: getEmployees
+        queryFn: () => getEmployees()
     });
 
     const { data: employmentStatuses } = useQuery({

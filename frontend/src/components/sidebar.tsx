@@ -40,6 +40,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onCloseMobile }) => {
         <>
             <Link to="/employment-statuses" className="block py-2 px-2 hover:bg-gray-700 rounded transition-colors duration-150" onClick={onCloseMobile}>Employment Statuses</Link>
             <Link to="/leave-types" className="block py-2 px-2 hover:bg-gray-700 rounded transition-colors duration-150" onClick={onCloseMobile}>Leave Types</Link>
+            <Link to="/paylimits" className="block py-2 px-2 hover:bg-gray-700 rounded transition-colors duration-150" onClick={onCloseMobile}>Pay Limits</Link>
         </>
     );
 

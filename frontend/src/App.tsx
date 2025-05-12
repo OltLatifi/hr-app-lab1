@@ -40,6 +40,10 @@ import PayrollListPage from './pages/payroll/list-page';
 import PayrollAddPage from './pages/payroll/create-page';
 import PayrollUpdatePage from './pages/payroll/update-page';
 
+import PayLimitListPage from './pages/paylimits/list-page';
+import PayLimitAddPage from './pages/paylimits/create-page';
+import PayLimitUpdatePage from './pages/paylimits/update-page';
+
 import HomePage from './pages/home/index';
 
 
@@ -86,6 +90,10 @@ function AppContent() {
             <Route path="/payrolls" element={<PayrollListPage />} />
             <Route path="/payrolls/add" element={<PayrollAddPage />} />
             <Route path="/payrolls/edit/:id" element={<PayrollUpdatePage />} />
+
+            <Route path="/paylimits" element={<PayLimitListPage />} />
+            <Route path="/paylimits/add" element={<PayLimitAddPage />} />
+            <Route path="/paylimits/edit/:id" element={<PayLimitUpdatePage />} />
 
             <Route path="/admin" element={<AdminPage />} />
           </Route>

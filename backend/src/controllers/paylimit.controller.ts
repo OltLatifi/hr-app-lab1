@@ -27,11 +27,7 @@ export const findAll = async (req: Request, res: Response): Promise<Response> =>
     }
 
     try {
-        const departmentId = parseInt(req.params.departmentId, 10);
-        if (isNaN(departmentId)) {
-            return res.status(400).json({ message: 'Invalid department ID' });
-        }
-        const payLimits = await payLimitService.getAllPayLimits(departmentId);
+        const payLimits = await payLimitService.getAllPayLimits(companyId);
         return res.status(200).json(payLimits);
     } catch (error) {
         console.error('Error fetching pay limits:', error);
