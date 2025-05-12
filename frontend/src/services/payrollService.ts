@@ -89,13 +89,3 @@ export const getPayrollsByDepartment = async (): Promise<Record<number, number>>
         throw error;
     }
 };
-
-export const getStatisticsByDepartment = async (): Promise<Record<string, number>> => {
-    try {
-        const response = await apiClient.get('/payrolls/calculate-statistics-by-department');
-        return response.data;
-    } catch (error) {
-        console.error('API Error Fetching Statistics by Department:', error);
-        throw error;
-    }
-};
