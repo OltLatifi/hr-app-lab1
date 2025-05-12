@@ -76,8 +76,6 @@ export const login = async (req: Request, res: Response): Promise<Response> => {
 };
 
 export const refresh = async (req: Request, res: Response): Promise<Response> => {
-    logging.log('THIS ENDPOINT IS BEING CALLED');
-    logging.log(req.cookies);
     const existingRefreshToken = req.cookies[authConfig.cookies.refresh];
 
     if (!existingRefreshToken) {

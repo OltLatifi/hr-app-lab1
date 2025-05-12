@@ -44,6 +44,10 @@ import PayLimitListPage from './pages/paylimits/list-page';
 import PayLimitAddPage from './pages/paylimits/create-page';
 import PayLimitUpdatePage from './pages/paylimits/update-page';
 
+import LeaveRequestListPage from './pages/leave/list-page';
+import LeaveRequestAddPage from './pages/leave/create-page';
+import LeaveRequestUpdatePage from './pages/leave/update-page';
+
 import HomePage from './pages/home/index';
 
 
@@ -95,6 +99,10 @@ function AppContent() {
             <Route path="/paylimits/add" element={<PayLimitAddPage />} />
             <Route path="/paylimits/add/:departmentId" element={<PayLimitAddPage />} />
             <Route path="/paylimits/edit/:id" element={<PayLimitUpdatePage />} />
+
+            <Route path="/leaves" element={<LeaveRequestListPage />} />
+            <Route path="/leaves/add" element={<LeaveRequestAddPage />} />
+            <Route path="/leaves/edit/:id" element={<LeaveRequestUpdatePage />} />
 
             <Route path="/admin" element={<AdminPage />} />
           </Route>

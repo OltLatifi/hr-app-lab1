@@ -11,22 +11,32 @@ type LeaveRequestOrNull = LeaveRequest | null;
  * @param companyId - The ID of the company the leave request belongs to.
  * @returns The leave request object or null if not found.
  */
-export const findLeaveRequestById = async (leaveRequestId: number, companyId: number): Promise<LeaveRequestOrNull> => {
-    const result = await db.select()
-    .from(leaveRequests)
-    .where(and(eq(leaveRequests.id, leaveRequestId), eq(leaveRequests.companyId, companyId)))
-    .limit(1);
+export const findLeaveRequestById = async (leaveRequestId: number, companyId: number) => {
+    const result = await db.query.leaveRequests.findFirst({
+        where: and(eq(leaveRequests.id, leaveRequestId), eq(leaveRequests.companyId, companyId)),
+        with: {
+            employee: true,
+            leaveType: true
+        }
+    });
 
-    return result.length > 0 ? result[0] : null;
+    return result;
 };
 
 /**
  * Retrieves all leave requests for a specific company.
  * @param companyId - The ID of the company.
- * @returns A list of all leave request objects for the company.
+ * @returns A list of all leave request objects for the company. 
  */
 export const getAllLeaveRequests = async (companyId: number): Promise<Array<LeaveRequest>> => {
-    return await db.select().from(leaveRequests).where(eq(leaveRequests.companyId, companyId));
+    const result = await db.query.leaveRequests.findMany({
+        where: eq(leaveRequests.companyId, companyId),
+        with: {
+            employee: true,
+            leaveType: true
+        }
+    });
+    return result;
 };
 
 /**
