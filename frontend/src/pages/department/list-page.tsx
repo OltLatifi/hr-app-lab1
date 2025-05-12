@@ -67,7 +67,7 @@ const DepartmentListPage: React.FC = () => {
         enabled: departments.length > 0,
     });
 
-    const { data: departmentPayrolls = {} } = useQuery<Record<number, number>, Error>({
+    const { data: departmentPayrolls = {} } = useQuery<Record<string, number>, Error>({
         queryKey: ['departmentPayrolls'],
         queryFn: getPayrollsByDepartment,
         enabled: departments.length > 0,
@@ -138,11 +138,7 @@ const DepartmentListPage: React.FC = () => {
             const payLimit = payLimits.find((limit): limit is PayLimitResponse => 
                 limit !== null && limit.departmentId === dept.departmentId
             );
-            const departmentTotalPayroll = departmentPayrolls[dept.departmentId] || 0;
-            console.log(departmentTotalPayroll);
-            console.log(payLimit);
-            console.log(dept)
-            console.log(payLimits);
+            const departmentTotalPayroll = departmentPayrolls[dept.departmentName] || 0;
             const exceedsPayLimit = payLimit && departmentTotalPayroll > payLimit.limit;
             
             return (

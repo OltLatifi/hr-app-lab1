@@ -19,6 +19,8 @@ import benefitRouter from './routes/benefit.route';
 import leaveTypeRouter from './routes/leavetype.route';
 import payrollRouter from './routes/payroll.route';
 import payLimitRouter from './routes/paylimit.route';
+import leaveRouter from './routes/leave.route';
+
 export const application = express();
 export let httpServer: ReturnType<typeof http.createServer>;
 
@@ -45,6 +47,8 @@ export const Main = () => {
     application.use('/benefits', benefitRouter);
     application.use('/leavetypes', leaveTypeRouter);
     application.use('/paylimits', payLimitRouter);
+    application.use('/leaverequests', leaveRouter);
+    
     application.use(routeNotFound);
 
     httpServer = http.createServer(application);
