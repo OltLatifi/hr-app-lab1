@@ -85,7 +85,14 @@ const RegisterAdminPage: React.FC = () => {
         },
         onSuccess: (data) => {
             setUser(data.user); 
-            navigate('/');
+            const role = data.user.role.name;
+            if (role === 'Admin') {
+                navigate('/admin');
+            } else if (role === 'HR') {
+                navigate('/');
+            } else {
+                navigate('/leaves');
+            }
         },
         onError: (error) => {
             console.error('Admin registration mutation error:', error);
@@ -193,7 +200,7 @@ const RegisterAdminPage: React.FC = () => {
         <div className="flex justify-center items-center min-h-screen">
             <Card className="w-full max-w-sm">
                 <CardHeader className="space-y-1 text-center">
-                    <CardTitle className="text-2xl font-bold">Register Admin Account</CardTitle>
+                    <CardTitle className="text-2xl font-bold">Register Account</CardTitle>
                     {validationStatus === 'valid' && invitedEmail && (
                         <CardDescription>Complete registration for {invitedEmail}</CardDescription>
                     )}

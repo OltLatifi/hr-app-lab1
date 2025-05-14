@@ -1,13 +1,14 @@
 import apiClient from '@/lib/api-client';
 
 export interface CreateLeaveRequestPayload {
-    employeeId: number;
+    employeeId?: number;
     leaveTypeId: number;
     startDate: string;
     endDate: string;
+    status: string;
 }
 
-export const createLeaveRequest = async (data: CreateLeaveRequestPayload) => {
+export const createLeaveRequest = async (data: Omit<CreateLeaveRequestPayload, 'employeeId'>) => {
     const response = await apiClient.post('/leaverequests', data);
     return response.data;
 };

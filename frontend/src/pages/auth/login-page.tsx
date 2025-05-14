@@ -47,7 +47,13 @@ const LoginPage: React.FC = () => {
         },
         onSuccess: (data) => {
             setUser(data.user);
-            navigate('/');
+            if (data.user.role.name === 'Admin') {
+                navigate('/admin');
+            } else if (data.user.role.name === 'HR') {
+                navigate('/');
+            } else if (data.user.role.name === 'Employee') {
+                navigate('/leaves');
+            }
         },
         onError: (error) => {
             console.error('Login mutation error:', error);

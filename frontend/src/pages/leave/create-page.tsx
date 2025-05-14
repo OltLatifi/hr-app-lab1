@@ -17,11 +17,9 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { getEmployees } from '@/services/employeeService';
 import { getLeaveTypes } from '@/services/leavetypeService';
 
 const formSchema = z.object({
-    employeeId: z.number().min(1, { message: "Employee is required." }),
     leaveTypeId: z.number().min(1, { message: "Leave type is required." }),
     startDate: z.string().min(1, { message: "Start date is required." }),
     endDate: z.string().min(1, { message: "End date is required." }),
@@ -37,7 +35,6 @@ const LeaveRequestCreatePage: React.FC = () => {
     const form = useForm<LeaveRequestFormValues>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            employeeId: undefined,
             leaveTypeId: undefined,
             startDate: '',
             endDate: '',
@@ -62,11 +59,6 @@ const LeaveRequestCreatePage: React.FC = () => {
         mutation.mutate(values);
     };
 
-    const { data: employees } = useQuery({
-        queryKey: ['employees'],
-        queryFn: () => getEmployees(),
-    });
-
     const { data: leaveTypes } = useQuery({
         queryKey: ['leaveTypes'],
         queryFn: () => getLeaveTypes(),
@@ -83,37 +75,6 @@ const LeaveRequestCreatePage: React.FC = () => {
                     <Form {...form}>
                         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                             <div className="grid grid-cols-2 gap-6">
-                                <FormField
-                                    control={form.control}
-                                    name="employeeId"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Employee</FormLabel>
-                                            <Select
-                                                onValueChange={(value) => field.onChange(parseInt(value, 10))}
-                                                defaultValue={field.value?.toString()}
-                                                disabled={isLoading}
-                                            >
-                                                <FormControl>
-                                                    <SelectTrigger className="w-full">
-                                                        <SelectValue placeholder="Select an employee" />
-                                                    </SelectTrigger>
-                                                </FormControl>
-                                                <SelectContent>
-                                                    {employees?.map((employee) => (
-                                                        <SelectItem
-                                                            key={employee.id}
-                                                            value={employee.id.toString()}
-                                                        >
-                                                            {employee.firstName} {employee.lastName}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
                                 <FormField
                                     control={form.control}
                                     name="leaveTypeId"

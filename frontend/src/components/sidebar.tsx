@@ -45,7 +45,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onCloseMobile }) => {
             <Link to="/trainings" className="block py-2 px-2 hover:bg-gray-700 rounded transition-colors duration-150" onClick={onCloseMobile}>Trainings</Link>
             <Link to="/benefits" className="block py-2 px-2 hover:bg-gray-700 rounded transition-colors duration-150" onClick={onCloseMobile}>Benefits</Link>
             <Link to="/payrolls" className="block py-2 px-2 hover:bg-gray-700 rounded transition-colors duration-150" onClick={onCloseMobile}>Payrolls</Link>
-            <Link to="/leaves" className="block py-2 px-2 hover:bg-gray-700 rounded transition-colors duration-150" onClick={onCloseMobile}>Leave Requests</Link>
         </>
     );
 
