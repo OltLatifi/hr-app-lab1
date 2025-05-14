@@ -423,13 +423,13 @@ export const employeeTrainingRelations = relations(
   }),
 );
 
-export const usersRelations = relations(users, ({ one }) => ({
+export const usersRelations = relations(users, ({ one, many }) => ({
   employee: one(employees, {
     fields: [users.id],
     references: [employees.id],
   }),
   role: one(roles, {
-    fields: [users.id],
+    fields: [users.roleId],
     references: [roles.id],
   }),
   administeredCompany: one(company, {

@@ -6,7 +6,7 @@ import { findUserById } from '../services/user.service';
 declare global {
     namespace Express {
         interface Request {
-            user?: { id: number; name: string; email: string; companyId: number | null; roleId: number; role: { id: number; name: string; createdAt: Date; updatedAt: Date; } };
+            user?: { id: number; name: string; email: string; companyId: number | null; roleId: number; role: { id: number; name: string; } };
         }
     }
 }
@@ -30,6 +30,7 @@ export const authenticateToken = async (req: Request, res: Response, next: NextF
         if (!user) {
             return res.status(404).json({ message: 'Authenticated user not found.' });
         }
+        console.log("user ->", user);
         req.user = user;
         next();
     } catch (error) {

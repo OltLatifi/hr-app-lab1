@@ -25,6 +25,27 @@ export const findEmployeeById = async (employeeId: number, companyId: number): P
     return results as Employee;
 };
 
+
+/**
+ * Finds a employee by their email.
+ * @param email - The email of the employee to find.
+ * @param companyId - The ID of the company the employee belongs to.
+ * @returns The employee object or null if not found.
+ */
+export const findEmployeeByEmail = async (email: string): Promise<EmployeeOrNull> => {
+    const results = await db.query.employees.findFirst({
+        where: eq(employees.email, email),
+
+        with: {
+            jobTitle: { columns: { id: true, name: true } },
+            department: { columns: { departmentId: true, departmentName: true } },
+            manager: { columns: { id: true, firstName: true, lastName: true } },
+            employmentStatus: { columns: { id: true, statusName: true } }
+        },
+    });
+    return results as Employee;
+};
+
 /**
  * Retrieves all employees with their job title, department, manager, and employment status.
  * @param companyId - The ID of the company the employees belong to.

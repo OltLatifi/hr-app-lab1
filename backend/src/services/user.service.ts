@@ -26,20 +26,21 @@ export const findUserById = async (userId: number) => {
         }
     });
 
-    if (!result) {
+    if (!result || !result.role) {
         return null;
     }
 
-    const userWithCompanyId = {
+    return {
         id: result.id,
         name: result.name,
         email: result.email,
         roleId: result.role.id,
         companyId: result.administeredCompany?.id ?? null,
-        role: result.role,
+        role: {
+            id: result.role.id,
+            name: result.role.name,
+        },
     };
-
-    return userWithCompanyId;
 };
 
 /**
@@ -53,10 +54,30 @@ export const findUserByEmailWithPassword = async (email: string) => {
         where: eq(users.email, email),
         with: {
             role: true,
+            administeredCompany: {
+                columns: {
+                    id: true
+                }
+            },
         },
     });
 
-    return result ?? null;
+    if (!result) {
+        return null;
+    }   
+
+    return {
+        id: result.id,
+        name: result.name,
+        email: result.email,
+        roleId: result.role.id,
+        companyId: result.administeredCompany?.id ?? null,
+        password: result.password,
+        role: {
+            id: result.role.id,
+            name: result.role.name,
+        },
+    };
 };
 
 /**
@@ -64,7 +85,7 @@ export const findUserByEmailWithPassword = async (email: string) => {
  * @param name - The name of the user.
  * @param email - The email of the user.
  * @param password - The password of the user.
- * @param roleId - The role ID of the user.
+ * @param role - The role of the user.
  * @returns The newly created user.
  */
 export const createUser = async (name: string, email: string, password: string, role: string): Promise<User> => {

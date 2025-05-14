@@ -5,7 +5,7 @@ export const create = async (req: Request, res: Response): Promise<Response> => 
     const body = req.body;
     const companyId = req.user?.companyId;
     
-    
+    console.log("companyId ->", companyId);
     if(companyId){
         body.companyId = companyId;
     }

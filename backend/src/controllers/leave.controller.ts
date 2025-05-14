@@ -1,13 +1,22 @@
 import { Request, Response } from 'express';
 import * as leaveService from '../services/leave.service';
+import * as userService from '../services/user.service';
+import * as employeeService from '../services/employee.service';
 
 export const create = async (req: Request, res: Response): Promise<Response> => {
     const body = req.body;
     const companyId = req.user?.companyId;
-    
-    
+    const userEmail = req.user?.email;
+
     if(companyId){
         body.companyId = companyId;
+    }
+
+    if(userEmail){
+        const employee = await employeeService.findEmployeeByEmail(userEmail);
+        if(employee){
+            body.employeeId = employee.id;
+        }
     }
 
     try {

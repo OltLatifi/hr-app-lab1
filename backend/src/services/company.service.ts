@@ -12,6 +12,8 @@ type CreatedCompany = typeof company.$inferSelect;
  * @throws Error if the company cannot be found or updated.
  */
 export const updateCompanyAdmin = async (companyId: number, adminId: number) => {
+    console.log("companyId ->", companyId);
+    console.log("adminId ->", adminId);
     try {
         const [updatedCompany] = await db
             .update(company)
@@ -86,39 +88,18 @@ export const createCompany = async (name: string): Promise<CreatedCompany> => {
  */
 export const deleteCompany = async (companyId: number) => {
     try {
-        const transaction = await db.transaction(async (tx) => {
-            const companiesFound = await tx.select({
-                adminId: company.adminId
-            })
-            .from(company)
+        const deletedCompany = await db.delete(company)
             .where(eq(company.id, companyId))
-            .limit(1);
+            .returning();
 
-            if (companiesFound.length === 0) {
-                throw new Error('Company not found.');
-            }
+        if (deletedCompany[0]?.adminId) {
+            await db.delete(users)
+                .where(eq(users.id, deletedCompany[0].adminId));
+        }
 
-            const adminIdToDelete = companiesFound[0].adminId;
-
-            if (adminIdToDelete !== null) {
-                await tx.delete(users)
-                    .where(eq(users.id, adminIdToDelete));
-            }
-            
-            const deletedCompany = await tx.delete(company)
-                .where(eq(company.id, companyId))
-                .returning();
-
-            if (deletedCompany.length === 0) {
-                throw new Error('Failed to delete company after finding it.');
-            }
-
-            return deletedCompany[0];
-        });
-
-        return transaction;
+        return deletedCompany;
     } catch (error) {
         console.error('Error deleting company:', error);
-        throw new Error('Database error during company deletion.');
+        throw new Error('Failed to delete company: ' + (error instanceof Error ? error.message : 'Unknown error'));
     }
 };  

@@ -13,6 +13,9 @@ import {
     markInvitationAsAccepted
 } from '../services/invitation.service';
 import { updateCompanyAdmin } from '../services/company.service';
+import db from '../db';
+import { roles } from '../db/schema';
+import { eq } from 'drizzle-orm';
 
 const setAuthCookies = (res: Response, accessToken: string, refreshToken: string) => {
     res.cookie(authConfig.cookies.access, accessToken, {
@@ -63,9 +66,11 @@ export const login = async (req: Request, res: Response): Promise<Response> => {
 
         setAuthCookies(res, accessToken, refreshToken);
 
+        console.log(user);
+
         return res.status(200).json({ 
             message: 'Login successful', 
-            user: { id: user.id, name: user.name, email: user.email, role: user.role.name }
+            user: { id: user.id, name: user?.name, email: user.email, companyId: user.companyId, role: user.role }
         });
 
     } catch (error) {
@@ -186,10 +191,13 @@ export const registerAdmin = async (req: Request, res: Response): Promise<Respon
             return res.status(409).json({ message: 'Email associated with this invitation is already registered.' });
         }
 
-        const newUser = await createUser(name, invitation.invitedUserEmail, password, 'HR');
+        const role = await db.select().from(roles).where(eq(roles.id, invitation.roleId)).limit(1);
+        const newUser = await createUser(name, invitation.invitedUserEmail, password, role[0].name);
 
-        await updateCompanyAdmin(invitation.companyId, newUser.id);
-
+        // If employees register, dont assign the company to them
+        if(role[0].name === 'HR'){
+            await updateCompanyAdmin(invitation.companyId, newUser.id);
+        }
         await markInvitationAsAccepted(token);
 
         const tokenPayload: AuthTokenPayload = { userId: newUser.id };
@@ -199,7 +207,7 @@ export const registerAdmin = async (req: Request, res: Response): Promise<Respon
 
         return res.status(201).json({ 
             message: 'Admin registration successful', 
-            user: { id: newUser.id, name: newUser.name, email: newUser.email }
+            user: { id: newUser.id, name: newUser.name, email: newUser.email, role: role[0] }
         });
 
     } catch (error) {
