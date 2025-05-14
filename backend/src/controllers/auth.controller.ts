@@ -53,7 +53,6 @@ export const login = async (req: Request, res: Response): Promise<Response> => {
         }
 
         const isPasswordValid = await comparePassword(password, user.password);
-
         if (!isPasswordValid) {
             return res.status(401).json({ message: 'Invalid credentials.' });
         }
@@ -66,7 +65,7 @@ export const login = async (req: Request, res: Response): Promise<Response> => {
 
         return res.status(200).json({ 
             message: 'Login successful', 
-            user: { id: user.id, name: user.name, email: user.email, isAdmin: user.isAdmin }
+            user: { id: user.id, name: user.name, email: user.email, role: user.role.name }
         });
 
     } catch (error) {
@@ -113,10 +112,10 @@ export const logout = (_req: Request, res: Response) => {
 };
 
 export const register = async (req: Request, res: Response): Promise<Response> => {
-    const { name, email, password } = req.body;
+    const { name, email, password, role } = req.body;
 
-    if (!name || !email || !password) {
-        return res.status(400).json({ message: 'Name, email, and password are required.' });
+    if (!name || !email || !password || !role) {
+        return res.status(400).json({ message: 'Name, email, password, and role are required.' });
     }
 
     try {
@@ -125,7 +124,7 @@ export const register = async (req: Request, res: Response): Promise<Response> =
             return res.status(400).json({ message: 'Email already in use.' });
         }
 
-        const newUser = await createUser(name, email, password);
+        const newUser = await createUser(name, email, password, role);
 
         const tokenPayload: AuthTokenPayload = { userId: newUser.id };
         const accessToken = generateAccessToken(tokenPayload);
@@ -187,7 +186,7 @@ export const registerAdmin = async (req: Request, res: Response): Promise<Respon
             return res.status(409).json({ message: 'Email associated with this invitation is already registered.' });
         }
 
-        const newUser = await createUser(name, invitation.invitedUserEmail, password);
+        const newUser = await createUser(name, invitation.invitedUserEmail, password, 'HR');
 
         await updateCompanyAdmin(invitation.companyId, newUser.id);
 

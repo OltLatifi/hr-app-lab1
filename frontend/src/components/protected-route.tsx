@@ -3,9 +3,14 @@ import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuthStore } from '@/stores/auth-store';
 import Sidebar from '@/components/sidebar';
 
-const ProtectedRoute: React.FC = () => {
+interface ProtectedRouteProps {
+    requiredRole?: string;
+}
+
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ requiredRole }) => {
     const isAuthenticated = useAuthStore(state => state.isAuthenticated);
     const isLoading = useAuthStore(state => state.isLoading);
+    const user = useAuthStore(state => state.user);
     const location = useLocation();
     const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
@@ -13,7 +18,12 @@ const ProtectedRoute: React.FC = () => {
         return <div className="flex items-center justify-center h-screen">Loading...</div>; 
     }
 
-    if (!isAuthenticated) {
+    const hasRequiredRole = () => {
+        if (!requiredRole) return true;
+        return user?.role.name === requiredRole;
+    };
+
+    if (!isAuthenticated || !hasRequiredRole()) {
         return <Navigate to="/login" state={{ from: location }} replace />;
     }
 

@@ -20,7 +20,7 @@ export const createCompanyController = async (req: Request, res: Response): Prom
     const { name } = req.body;
     const adminUser = req.user;
 
-    if (!adminUser?.isAdmin) {
+    if (adminUser?.role.name !== 'Admin') {
         return res.status(403).json({ message: 'Forbidden: You do not have permission to create companies.' });
     }
 
@@ -44,7 +44,7 @@ export const deleteCompanyController = async (req: Request, res: Response): Prom
     const { companyId } = req.params;
     const adminUser = req.user;
 
-    if (!adminUser?.isAdmin) {
+    if (adminUser?.role.name !== 'Admin') {
         return res.status(403).json({ message: 'Forbidden: You do not have permission to delete companies.' });
     }
 

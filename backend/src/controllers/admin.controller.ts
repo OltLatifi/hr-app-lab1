@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { createAdminInvitation } from '../services/invitation.service';
+import { createInvitation } from '../services/invitation.service';
 import { findCompanyById } from '../services/company.service';
 import { sendEmail } from '../utils/email.utils';
 
@@ -11,7 +11,7 @@ export const inviteAdmin = async (req: Request, res: Response): Promise<Response
         return res.status(401).json({ message: 'Unauthorized: Invalid authentication data.' });
     }
 
-    if (!inviterUser.isAdmin) {
+    if (inviterUser.role.name !== 'Admin') {
         console.warn(`Unauthorized invite attempt by user: ${inviterUser.email} (ID: ${inviterUser.id})`);
         return res.status(403).json({ message: 'Forbidden: You do not have permission to invite admins.' });
     }
@@ -27,10 +27,11 @@ export const inviteAdmin = async (req: Request, res: Response): Promise<Response
         }
         const companyName = company.name;
 
-        const invitation = await createAdminInvitation(
+        const invitation = await createInvitation(
             invitedUserEmail,
             companyId,
-            inviterUser.id
+            inviterUser.id,
+            'HR'
         );
 
         sendEmail(

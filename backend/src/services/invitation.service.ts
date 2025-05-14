@@ -1,5 +1,5 @@
 import db from '../db';
-import { adminInvitations } from '../db/schema';
+import { adminInvitations, roles } from '../db/schema';
 import { eq } from 'drizzle-orm';
 import crypto from 'crypto';
 import { addHours } from 'date-fns';
@@ -22,13 +22,18 @@ const generateInvitationToken = (): string => {
  * @returns The newly created invitation record.
  * @throws Error if the invitation cannot be created.
  */
-export const createAdminInvitation = async (
+export const createInvitation = async (
     invitedUserEmail: string,
     companyId: number,
-    invitedById: number
+    invitedById: number,
+    role: string
 ) => {
     const invitationToken = generateInvitationToken();
     const expiresAt = addHours(new Date(), INVITATION_EXPIRATION_HOURS);
+    const roleId = await db.query.roles.findFirst({ where: eq(roles.name, role) });
+    if (!roleId) {
+        throw new Error('Role not found');
+    }
 
     try {
         const [newInvitation] = await db
@@ -39,6 +44,7 @@ export const createAdminInvitation = async (
                 invitationToken,
                 expiresAt,
                 invitedById,
+                roleId: roleId.id,
                 status: 'pending',
             })
             .returning();

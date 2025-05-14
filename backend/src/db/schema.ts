@@ -17,14 +17,16 @@ export const users = pgTable("user", {
   name: varchar('name', { length: 255 }).notNull(),
   email: varchar('email', { length: 255 }).notNull().unique(),
   password: text('password').notNull(),
-  isAdmin: boolean('is_admin').notNull().default(false),
+  roleId: integer('role_id')
+    .notNull()
+    .references(() => roles.id, { onDelete: 'cascade' }),
 });
 
 export const company = pgTable('company', {
   id: serial('id').primaryKey(),
   name: varchar('name', { length: 255 }).notNull(),
   adminId: integer('admin_id')
-    .references(() => users.id),
+    .references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
@@ -46,14 +48,14 @@ export const employees = pgTable('employee', {
   hireDate: date('hire_date').notNull(),
   jobTitleId: integer('job_title_id')
     .notNull()
-    .references(() => jobTitles.id),
+    .references(() => jobTitles.id, { onDelete: 'cascade' }),
   departmentId: integer('department_id')
     .notNull()
-    .references(() => departments.departmentId),
-  managerId: integer('manager_id').references((): AnyPgColumn => employees.id),
+    .references(() => departments.departmentId, { onDelete: 'cascade' }),
+  managerId: integer('manager_id').references((): AnyPgColumn => employees.id, { onDelete: 'cascade' }),
   employmentStatusId: integer('employment_status_id')
     .notNull()
-    .references(() => employmentStatuses.id),
+    .references(() => employmentStatuses.id, { onDelete: 'cascade' }),
   companyId: integer('company_id')
     .notNull()
     .references(() => company.id, { onDelete: 'cascade' }),
@@ -162,7 +164,7 @@ export const attendance = pgTable('attendance', {
   id: serial('id').primaryKey(),
   employeeId: integer('employee_id')
     .notNull()
-    .references(() => employees.id),
+    .references(() => employees.id, { onDelete: 'cascade' }),
   recordDate: date('record_date').notNull(),
   checkInTime: timestamp('check_in_time'),
   checkOutTime: timestamp('check_out_time'),
@@ -190,10 +192,10 @@ export const leaveRequests = pgTable('leaverequest', {
   id: serial('id').primaryKey(),
   employeeId: integer('employee_id')
     .notNull()
-    .references(() => employees.id),
+    .references(() => employees.id, { onDelete: 'cascade' }),
   leaveTypeId: integer('leave_type_id')
     .notNull()
-    .references(() => leaveTypes.id),
+    .references(() => leaveTypes.id, { onDelete: 'cascade' }),
   startDate: date('start_date').notNull(),
   endDate: date('end_date').notNull(),
   status: varchar('status', { length: 50 }).notNull(),
@@ -243,7 +245,7 @@ export const payroll = pgTable('payroll', {
   id: serial('id').primaryKey(),
   employeeId: integer('employee_id')
     .notNull()
-    .references(() => employees.id),
+    .references(() => employees.id, { onDelete: 'cascade' }),
   payPeriodStartDate: date('pay_period_start_date').notNull(),
   payPeriodEndDate: date('pay_period_end_date').notNull(),
   netPay: integer('net_pay').notNull(),
@@ -273,7 +275,7 @@ export const payLimits = pgTable('paylimit', {
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
   departmentId: integer('department_id')
     .notNull()
-    .references(() => departments.departmentId),
+    .references(() => departments.departmentId, { onDelete: 'cascade' }),
 });
 
 export const payLimitsRelations = relations(payLimits, ({ one }) => ({
@@ -309,10 +311,10 @@ export const employeeBenefits = pgTable(
     id: serial('id').primaryKey(),
     employeeId: integer('employee_id')
       .notNull()
-      .references(() => employees.id),
+      .references(() => employees.id, { onDelete: 'cascade' }),
     benefitId: integer('benefit_id')
       .notNull()
-      .references(() => benefits.id),
+      .references(() => benefits.id, { onDelete: 'cascade' }),
     enrollmentDate: date('enrollment_date').notNull(),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
@@ -345,7 +347,7 @@ export const performanceReviews = pgTable('performancereview', {
   id: serial('id').primaryKey(),
   employeeId: integer('employee_id')
     .notNull()
-    .references(() => employees.id),
+    .references(() => employees.id, { onDelete: 'cascade' }),
   reviewDate: date('review_date').notNull(),
   overallRating: integer('overall_rating'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
@@ -397,10 +399,10 @@ export const employeeTraining = pgTable(
     employeeTrainingId: serial('employee_training_id').primaryKey(),
     employeeId: integer('employee_id')
       .notNull()
-      .references(() => employees.id),
+      .references(() => employees.id, { onDelete: 'cascade' }),
     programId: integer('program_id')
       .notNull()
-      .references(() => trainingPrograms.id),
+      .references(() => trainingPrograms.id, { onDelete: 'cascade' }),
     completionDate: date('completion_date'),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
@@ -459,7 +461,10 @@ export const adminInvitations = pgTable('admin_invitation', {
   status: varchar('status', { length: 50 }).notNull().default('pending'),
   invitedById: integer('invited_by_id')
     .notNull()
-    .references(() => users.id),
+    .references(() => users.id, { onDelete: 'cascade' }),
+  roleId: integer('role_id')
+    .notNull()
+    .references(() => roles.id, { onDelete: 'cascade' }),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
@@ -472,6 +477,10 @@ export const adminInvitationsRelations = relations(adminInvitations, ({ one }) =
   invitedBy: one(users, {
     fields: [adminInvitations.invitedById],
     references: [users.id],
+  }),
+  role: one(roles, {
+    fields: [adminInvitations.roleId],
+    references: [roles.id],
   }),
 }));
 

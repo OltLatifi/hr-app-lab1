@@ -1,6 +1,8 @@
 import dotenv from 'dotenv';
 import { findUserByEmailWithPassword, createUser } from '../services/user.service';
-
+import db from '../db';
+import { roles } from '../db/schema';
+import { eq } from 'drizzle-orm';
 dotenv.config();
 
 const seedSystemAdmin = async () => {
@@ -15,6 +17,25 @@ const seedSystemAdmin = async () => {
     }
 
     try {
+        const roleNames = ["Admin", "HR", "Employee"]
+
+        for (const roleName of roleNames) {
+            const existingRole = await db.query.roles.findFirst({
+                where: eq(roles.name, roleName),
+            });
+
+            if (!existingRole) {
+                await db.insert(roles).values({
+                    name: roleName,
+                });
+            }
+        }
+    } catch (error) {
+        console.error('Error during system admin seeding:', error);
+        process.exit(1);
+    }
+
+    try {
         console.log(`Checking for existing admin user: ${adminEmail}...`);
         const existingAdmin = await findUserByEmailWithPassword(adminEmail);
 
@@ -23,7 +44,7 @@ const seedSystemAdmin = async () => {
         } else {
             console.log('System admin user not found. Creating...');
             const adminName = 'System Admin'; 
-            await createUser(adminName, adminEmail, adminPassword, true);
+            await createUser(adminName, adminEmail, adminPassword, 'Admin');
             console.log('System admin user created successfully.');
         }
 

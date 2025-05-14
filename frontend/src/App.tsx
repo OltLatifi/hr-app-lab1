@@ -61,7 +61,7 @@ function AppContent() {
           <Route path="/register" element={<RegisterPage />} />
           
           {/* Protected Routes */}
-          <Route element={<ProtectedRoute />}>
+          <Route element={<ProtectedRoute requiredRole="HR" />}>
             <Route path="/" element={<HomePage />} />
             <Route path="/departments" element={<DepartmentListPage />} />
             <Route path="/departments/add" element={<DepartmentAddPage />} />
@@ -99,11 +99,15 @@ function AppContent() {
             <Route path="/paylimits/add" element={<PayLimitAddPage />} />
             <Route path="/paylimits/add/:departmentId" element={<PayLimitAddPage />} />
             <Route path="/paylimits/edit/:id" element={<PayLimitUpdatePage />} />
+          </Route>
 
+          <Route element={<ProtectedRoute requiredRole="Employee" />}>
             <Route path="/leaves" element={<LeaveRequestListPage />} />
             <Route path="/leaves/add" element={<LeaveRequestAddPage />} />
             <Route path="/leaves/edit/:id" element={<LeaveRequestUpdatePage />} />
+          </Route>
 
+          <Route element={<ProtectedRoute requiredRole="Admin" />}>
             <Route path="/admin" element={<AdminPage />} />
           </Route>
 

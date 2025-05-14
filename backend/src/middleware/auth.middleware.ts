@@ -6,7 +6,7 @@ import { findUserById } from '../services/user.service';
 declare global {
     namespace Express {
         interface Request {
-            user?: { id: number; name: string; email: string; companyId: number | null; isAdmin: boolean };
+            user?: { id: number; name: string; email: string; companyId: number | null; roleId: number; role: { id: number; name: string; createdAt: Date; updatedAt: Date; } };
         }
     }
 }

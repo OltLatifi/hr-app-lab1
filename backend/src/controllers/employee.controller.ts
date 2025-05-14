@@ -1,10 +1,14 @@
 import { Request, Response } from 'express';
 import * as employeeService from '../services/employee.service';
+import { sendEmail } from '../utils/email.utils';
+import * as companyService from '../services/company.service';
+import { createInvitation } from '../services/invitation.service';
 
 export const create = async (req: Request, res: Response): Promise<Response> => {
     const companyId = req.user?.companyId;
+    const currentUserId = req.user?.id;
 
-    if(!companyId){
+    if(!companyId || !currentUserId){
         return res.status(401).json({ message: 'Unauthorized' });
     }
 
@@ -13,6 +17,21 @@ export const create = async (req: Request, res: Response): Promise<Response> => 
 
     try {
         const employee = await employeeService.createEmployee(body);
+        const company = await companyService.findCompanyById(companyId);
+        const invitation = await createInvitation(employee.email, companyId, currentUserId, 'Employee');
+        try {
+            const email = employee.email;
+            const companyName = company?.name;
+            sendEmail(
+                email,
+                "HR Management System - Employee Invitation",
+                `<p>You have been invited to join ${companyName} as an employee. Please click the link below to register:</p><p><a href="http://localhost:5173/register?token=${invitation.invitationToken}">Register</a></p>`
+            );
+    
+        } catch (error) {
+            console.error('Error creating employee:', error);
+            return res.status(500).json({ message: 'Failed to create employee' });
+        }
         return res.status(201).json(employee);
     } catch (error) {
         console.error('Error creating employee:', error);

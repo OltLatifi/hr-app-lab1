@@ -1,32 +1,28 @@
 import db from '../db';
-import { users, User } from '../db/schema';
+import { users, User, roles } from '../db/schema';
 import { eq } from 'drizzle-orm';
 import { hashPassword } from '../utils/auth.utils';
-
-// Define a more specific type for the return value of findUserById
-type UserWithCompanyId = User & { companyId: number | null };
-
 /**
  * Finds a user by their ID, including the ID of the company they administer.
  * Excludes the password field from the result.
  * @param userId - The ID of the user to find.
  * @returns The user object with companyId or null if not found.
  */
-export const findUserById = async (userId: number): Promise<UserWithCompanyId | null> => {
+export const findUserById = async (userId: number) => {
     const result = await db.query.users.findFirst({
         where: eq(users.id, userId),
         columns: {
             id: true,
             name: true,
             email: true,
-            isAdmin: true,
         },
         with: {
             administeredCompany: {
                 columns: {
                     id: true
                 }
-            }
+            },
+            role: true,
         }
     });
 
@@ -34,12 +30,13 @@ export const findUserById = async (userId: number): Promise<UserWithCompanyId | 
         return null;
     }
 
-    const userWithCompanyId: UserWithCompanyId = {
+    const userWithCompanyId = {
         id: result.id,
         name: result.name,
         email: result.email,
+        roleId: result.role.id,
         companyId: result.administeredCompany?.id ?? null,
-        isAdmin: result.isAdmin
+        role: result.role,
     };
 
     return userWithCompanyId;
@@ -51,13 +48,15 @@ export const findUserById = async (userId: number): Promise<UserWithCompanyId | 
  * @param email - The email of the user to find.
  * @returns The full user object (including password hash) or null if not found.
  */
-export const findUserByEmailWithPassword = async (email: string): Promise<typeof users.$inferSelect | null> => {
-    const result = await db.select()
-        .from(users)
-        .where(eq(users.email, email))
-        .limit(1);
+export const findUserByEmailWithPassword = async (email: string) => {
+    const result = await db.query.users.findFirst({
+        where: eq(users.email, email),
+        with: {
+            role: true,
+        },
+    });
 
-    return result.length > 0 ? result[0] : null;
+    return result ?? null;
 };
 
 /**
@@ -65,10 +64,15 @@ export const findUserByEmailWithPassword = async (email: string): Promise<typeof
  * @param name - The name of the user.
  * @param email - The email of the user.
  * @param password - The password of the user.
+ * @param roleId - The role ID of the user.
  * @returns The newly created user.
  */
-export const createUser = async (name: string, email: string, password: string, isAdmin: boolean = false): Promise<User> => {
+export const createUser = async (name: string, email: string, password: string, role: string): Promise<User> => {
     const hashedPassword = await hashPassword(password);
-    const newUser = await db.insert(users).values({ name, email, password: hashedPassword, isAdmin }).returning();
+    const roleId = await db.query.roles.findFirst({ where: eq(roles.name, role) });
+    if (!roleId) {
+        throw new Error('Role not found');
+    }
+    const newUser = await db.insert(users).values({ name, email, password: hashedPassword, roleId: roleId.id }).returning();
     return newUser[0] as User;
 };

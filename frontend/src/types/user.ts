@@ -2,5 +2,8 @@ export interface User {
     id: number;
     name: string;
     email: string;
-    isAdmin: boolean;
+    role: {
+        id: number;
+        name: string;
+    };
 }

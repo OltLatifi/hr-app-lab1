@@ -11,7 +11,8 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onCloseMobile }) => {
     const logout = useAuthStore(state => state.logout); 
     const user = useAuthStore(state => state.user); 
-    const isAdmin = user?.isAdmin;
+
+    const role = user?.role?.name as "Admin" | "HR" | "Employee";
     const [isMainNavOpen, setIsMainNavOpen] = React.useState(true);
     const [isSettingsNavOpen, setIsSettingsNavOpen] = React.useState(false);
 
@@ -24,6 +25,17 @@ const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onCloseMobile }) => {
             Admin
         </Link>
     );
+
+    const renderEmployeeLink = () => (
+        <Link 
+            to="/leaves" 
+            className="block py-2 px-2 hover:bg-gray-700 rounded transition-colors duration-150"
+            onClick={onCloseMobile}
+        >
+            Leave
+        </Link>
+    );
+    
 
     const renderMainNavigationLinks = () => (
         <>
@@ -65,45 +77,52 @@ const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onCloseMobile }) => {
             </div>
 
             <nav className="flex-grow space-y-2 overflow-y-auto">
-                {isAdmin ? (
-                    renderAdminLink()
-                ) : (
-                    <>
-                        <div>
-                            <button
-                                onClick={() => setIsMainNavOpen(!isMainNavOpen)}
-                                className="w-full text-left py-2 px-1 mb-1 hover:bg-gray-700 rounded flex justify-between items-center focus:outline-none transition-colors duration-150"
-                                aria-expanded={isMainNavOpen}
-                                aria-controls="main-nav-drawer"
-                            >
-                                Main Navigation
-                                <span>{isMainNavOpen ? '▲' : '▼'}</span>
-                            </button>
-                            {isMainNavOpen && (
-                                <div id="main-nav-drawer" className="pl-2 space-y-1">
-                                    {renderMainNavigationLinks()}
-                                </div>
-                            )}
-                        </div>
+                {(() => {
+                    switch (role) {
+                        case "Admin":
+                            return renderAdminLink();
+                        case "Employee":
+                            return renderEmployeeLink();
+                        default:
+                            return (
+                                <>
+                                    <div>
+                                        <button
+                                            onClick={() => setIsMainNavOpen(!isMainNavOpen)}
+                                            className="w-full text-left py-2 px-1 mb-1 hover:bg-gray-700 rounded flex justify-between items-center focus:outline-none transition-colors duration-150"
+                                            aria-expanded={isMainNavOpen}
+                                            aria-controls="main-nav-drawer"
+                                        >
+                                            Main Navigation
+                                            <span>{isMainNavOpen ? '▲' : '▼'}</span>
+                                        </button>
+                                        {isMainNavOpen && (
+                                            <div id="main-nav-drawer" className="pl-2 space-y-1">
+                                                {renderMainNavigationLinks()}
+                                            </div>
+                                        )}
+                                    </div>
 
-                        <div>
-                            <button
-                                onClick={() => setIsSettingsNavOpen(!isSettingsNavOpen)}
-                                className="w-full text-left py-2 px-1 mb-1 hover:bg-gray-700 rounded flex justify-between items-center focus:outline-none transition-colors duration-150"
-                                aria-expanded={isSettingsNavOpen}
-                                aria-controls="settings-nav-drawer"
-                            >
-                                Settings & Types
-                                <span>{isSettingsNavOpen ? '▲' : '▼'}</span>
-                            </button>
-                            {isSettingsNavOpen && (
-                                <div id="settings-nav-drawer" className="pl-2 space-y-1">
-                                    {renderSettingsNavigationLinks()}
-                                </div>
-                            )}
-                        </div>
-                    </>
-                )}
+                                    <div>
+                                        <button
+                                            onClick={() => setIsSettingsNavOpen(!isSettingsNavOpen)}
+                                            className="w-full text-left py-2 px-1 mb-1 hover:bg-gray-700 rounded flex justify-between items-center focus:outline-none transition-colors duration-150"
+                                            aria-expanded={isSettingsNavOpen}
+                                            aria-controls="settings-nav-drawer"
+                                        >
+                                            Settings & Types
+                                            <span>{isSettingsNavOpen ? '▲' : '▼'}</span>
+                                        </button>
+                                        {isSettingsNavOpen && (
+                                            <div id="settings-nav-drawer" className="pl-2 space-y-1">
+                                                {renderSettingsNavigationLinks()}
+                                            </div>
+                                        )}
+                                    </div>
+                                </>
+                            );
+                    }
+                })()}
             </nav>
 
             <div className="mt-auto pt-4 border-t border-gray-700">
