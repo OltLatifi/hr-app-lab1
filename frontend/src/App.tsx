@@ -49,6 +49,7 @@ import LeaveRequestAddPage from './pages/leave/create-page';
 import LeaveRequestUpdatePage from './pages/leave/update-page';
 
 import LeaveReviewListPage from './pages/leave/leave-review';
+import LeaveCalendarPage from './pages/leave/leave-calendar';
 
 import HomePage from './pages/home/index';
 
@@ -98,7 +99,8 @@ function AppContent() {
             <Route path="/payrolls/edit/:id" element={<PayrollUpdatePage />} />
 
             <Route path="/leave-reviews" element={<LeaveReviewListPage />} />
-
+            <Route path="/leave-calendar" element={<LeaveCalendarPage />} />
+            
             <Route path="/paylimits" element={<PayLimitListPage />} />
             <Route path="/paylimits/add" element={<PayLimitAddPage />} />
             <Route path="/paylimits/add/:departmentId" element={<PayLimitAddPage />} />

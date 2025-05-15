@@ -29,7 +29,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { getleaves, updateLeaveRequest } from '@/services/leaverequestService';
-
+import { Link } from 'react-router-dom';
 interface LeaveRequestResponse {
     id: number;
     employee: {
@@ -174,6 +174,9 @@ const LeaveReviewListPage: React.FC = () => {
                         <CardTitle className="text-2xl font-bold">Leave Requests Review</CardTitle>
                         <CardDescription>
                             Review and approve leave requests.
+                        </CardDescription>
+                        <CardDescription className="mt-2">
+                            <Link to="/leave-calendar" className="text-blue-500 hover:text-blue-600">View Leave Calendar</Link>
                         </CardDescription>
                     </div>
                     <div className="flex items-center gap-4">
