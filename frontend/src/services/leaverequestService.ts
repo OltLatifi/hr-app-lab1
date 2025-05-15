@@ -24,7 +24,7 @@ export const getLeaveRequestById = async (id: number) => {
 };
 
 export const updateLeaveRequest = async (id: number, data: Partial<CreateLeaveRequestPayload>) => {
-    const response = await apiClient.patch(`/leaverequests/${id}`, data);
+    const response = await apiClient.put(`/leaverequests/${id}`, data);
     return response.data;
 };
 

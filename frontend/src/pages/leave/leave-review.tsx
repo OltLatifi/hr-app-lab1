@@ -15,22 +15,20 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from "@/components/ui/dialog";
-import {
     Card,
     CardContent,
     CardDescription,
     CardHeader,
     CardTitle,
 } from "@/components/ui/card";
-import { Link } from 'react-router-dom';
-import { deleteLeaveRequest, getleaves } from '@/services/leaverequestService';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+import { getleaves, updateLeaveRequest } from '@/services/leaverequestService';
 
 interface LeaveRequestResponse {
     id: number;
@@ -48,10 +46,10 @@ interface LeaveRequestResponse {
     status: string;
 }
 
-const LeaveRequestListPage: React.FC = () => {
-    const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-    const [leaveRequestToDelete, setLeaveRequestToDelete] = useState<LeaveRequestResponse | null>(null);
+type StatusFilter = 'all' | 'pending' | 'approved' | 'rejected';
 
+const LeaveReviewListPage: React.FC = () => {
+    const [statusFilter, setStatusFilter] = useState<StatusFilter>('pending');
     const queryClient = useQueryClient();
 
     const {
@@ -64,31 +62,16 @@ const LeaveRequestListPage: React.FC = () => {
         queryFn: getleaves,
     });
 
-    const deleteMutation = useMutation({
-        mutationFn: deleteLeaveRequest,
+    const updateLeaveMutation = useMutation({
+        mutationFn: ({ id, status }: { id: number; status: string }) => 
+            updateLeaveRequest(id, { status }),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['leaves'] });
-            closeDeleteModal();
         },
-        onError: (err: Error) => {
-            console.error("Failed to delete leave request:", err);
-        },
+        onError: (error) => {
+            console.error('Error updating leave request:', error);
+        }
     });
-
-    const openDeleteModal = (leaveRequest: LeaveRequestResponse) => {
-        setLeaveRequestToDelete(leaveRequest);
-        setIsModalOpen(true);
-    };
-
-    const closeDeleteModal = () => {
-        setLeaveRequestToDelete(null);
-        setIsModalOpen(false);
-    };
-
-    const handleDeleteConfirm = () => {
-        if (!leaveRequestToDelete) return;
-        deleteMutation.mutate(leaveRequestToDelete.id);
-    };
 
     const getStatusColor = (status: string) => {
         switch (status.toLowerCase()) {
@@ -101,6 +84,21 @@ const LeaveRequestListPage: React.FC = () => {
             default:
                 return 'text-gray-600';
         }
+    };
+
+    const handleApprove = (id: number) => {
+        updateLeaveMutation.mutate({ id, status: 'approved' });
+    };
+
+    const handleDeny = (id: number) => {
+        updateLeaveMutation.mutate({ id, status: 'rejected' });
+    };
+
+    const getFilteredLeaves = () => {
+        if (statusFilter === 'all') {
+            return leaves;
+        }
+        return leaves.filter(leave => leave.status.toLowerCase() === statusFilter);
     };
 
     const renderTableContent = () => {
@@ -124,7 +122,9 @@ const LeaveRequestListPage: React.FC = () => {
             );
         }
 
-        if (!leaves || leaves.length === 0) {
+        const filteredLeaves = getFilteredLeaves();
+
+        if (!filteredLeaves || filteredLeaves.length === 0) {
             return (
                 <TableRow>
                     <TableCell colSpan={7} className="h-24 text-center">
@@ -134,7 +134,7 @@ const LeaveRequestListPage: React.FC = () => {
             );
         }
 
-        return leaves.map((leaveRequest) => (
+        return filteredLeaves.map((leaveRequest) => (
             <TableRow key={leaveRequest.id}>
                 <TableCell className="font-medium w-[100px]">{leaveRequest.id}</TableCell>
                 <TableCell>{leaveRequest.employee?.firstName} {leaveRequest.employee?.lastName}</TableCell>
@@ -142,21 +142,24 @@ const LeaveRequestListPage: React.FC = () => {
                 <TableCell>{new Date(leaveRequest.startDate).toLocaleDateString()}</TableCell>
                 <TableCell>{new Date(leaveRequest.endDate).toLocaleDateString()}</TableCell>
                 <TableCell className={getStatusColor(leaveRequest.status)}>
-                    {leaveRequest.status}
+                    <p className="capitalize">{leaveRequest.status}</p>
                 </TableCell>
                 <TableCell className="text-right space-x-2">
-                    {leaveRequest.status.toLowerCase() === 'pending' && (
-                        <Button asChild variant="outline" size="sm">
-                            <Link to={`/leaves/edit/${leaveRequest.id}`}>Edit</Link>
-                        </Button>
-                    )}
+                    <Button
+                        variant="default"
+                        size="sm"
+                        onClick={() => handleApprove(leaveRequest.id)}
+                        disabled={updateLeaveMutation.isPending}
+                    >
+                        Approve
+                    </Button>
                     <Button
                         variant="destructive"
                         size="sm"
-                        onClick={() => openDeleteModal(leaveRequest)}
-                        disabled={deleteMutation.isPending && deleteMutation.variables === leaveRequest.id}
+                        onClick={() => handleDeny(leaveRequest.id)}
+                        disabled={updateLeaveMutation.isPending}
                     >
-                        {deleteMutation.isPending && deleteMutation.variables === leaveRequest.id ? 'Deleting...' : 'Delete'}
+                        Deny
                     </Button>
                 </TableCell>
             </TableRow>
@@ -168,14 +171,27 @@ const LeaveRequestListPage: React.FC = () => {
             <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <div>
-                        <CardTitle className="text-2xl font-bold">Leave Requests</CardTitle>
+                        <CardTitle className="text-2xl font-bold">Leave Requests Review</CardTitle>
                         <CardDescription>
-                            View and manage your company's leave requests.
+                            Review and approve leave requests.
                         </CardDescription>
                     </div>
-                    <Button asChild>
-                        <Link to="/leaves/add">Add New Leave Request</Link>
-                    </Button>
+                    <div className="flex items-center gap-4">
+                        <Select
+                            value={statusFilter}
+                            onValueChange={(value: StatusFilter) => setStatusFilter(value)}
+                        >
+                            <SelectTrigger className="w-[180px]">
+                                <SelectValue placeholder="Filter by status" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">All Requests</SelectItem>
+                                <SelectItem value="pending">Pending</SelectItem>
+                                <SelectItem value="approved">Approved</SelectItem>
+                                <SelectItem value="rejected">Rejected</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
                 </CardHeader>
                 <CardContent>
                     <Table>
@@ -196,32 +212,8 @@ const LeaveRequestListPage: React.FC = () => {
                     </Table>
                 </CardContent>
             </Card>
-
-            <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Confirm Deletion</DialogTitle>
-                        <DialogDescription>
-                            Are you sure you want to delete the leave request for {leaveRequestToDelete?.employee.firstName} {leaveRequestToDelete?.employee.lastName}?
-                            This action cannot be undone.
-                        </DialogDescription>
-                    </DialogHeader>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={closeDeleteModal} disabled={deleteMutation.isPending}>
-                            Cancel
-                        </Button>
-                        <Button
-                            variant="destructive"
-                            onClick={handleDeleteConfirm}
-                            disabled={deleteMutation.isPending}
-                        >
-                            {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
         </div>
     );
 };
 
-export default LeaveRequestListPage; 
+export default LeaveReviewListPage; 

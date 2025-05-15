@@ -1,5 +1,5 @@
 import db from '../db';
-import { company, users } from '../db/schema';
+import { company, employees, users } from '../db/schema';
 import { eq } from 'drizzle-orm';
 
 type CreatedCompany = typeof company.$inferSelect;
@@ -12,8 +12,6 @@ type CreatedCompany = typeof company.$inferSelect;
  * @throws Error if the company cannot be found or updated.
  */
 export const updateCompanyAdmin = async (companyId: number, adminId: number) => {
-    console.log("companyId ->", companyId);
-    console.log("adminId ->", adminId);
     try {
         const [updatedCompany] = await db
             .update(company)
@@ -103,3 +101,25 @@ export const deleteCompany = async (companyId: number) => {
         throw new Error('Failed to delete company: ' + (error instanceof Error ? error.message : 'Unknown error'));
     }
 };  
+
+
+/**
+ * Finds a company by the email of the admin user.
+ * @param email The email of the admin user.
+ * @returns The company record or null if not found.
+ */
+export const getCompanyByUserEmail = async (email: string) => {
+    const employee = await db.query.employees.findFirst({
+        where: eq(employees.email, email),
+    });
+
+    if(!employee){
+        return null;
+    }
+
+    const result = await db
+        .select()
+        .from(company)
+        .where(eq(company.id, employee.companyId));
+    return result.length > 0 ? result[0] : null;
+};

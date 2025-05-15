@@ -41,10 +41,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onCloseMobile }) => {
         <>
             <Link to="/employees" className="block py-2 px-2 hover:bg-gray-700 rounded transition-colors duration-150" onClick={onCloseMobile}>Employees</Link>
             <Link to="/departments" className="block py-2 px-2 hover:bg-gray-700 rounded transition-colors duration-150" onClick={onCloseMobile}>Departments</Link>
-            <Link to="/jobtitles" className="block py-2 px-2 hover:bg-gray-700 rounded transition-colors duration-150" onClick={onCloseMobile}>Job Titles</Link>
             <Link to="/trainings" className="block py-2 px-2 hover:bg-gray-700 rounded transition-colors duration-150" onClick={onCloseMobile}>Trainings</Link>
             <Link to="/benefits" className="block py-2 px-2 hover:bg-gray-700 rounded transition-colors duration-150" onClick={onCloseMobile}>Benefits</Link>
             <Link to="/payrolls" className="block py-2 px-2 hover:bg-gray-700 rounded transition-colors duration-150" onClick={onCloseMobile}>Payrolls</Link>
+            <Link to="/leave-reviews" className="block py-2 px-2 hover:bg-gray-700 rounded transition-colors duration-150" onClick={onCloseMobile}>Leave Reviews</Link>
         </>
     );
 
@@ -52,6 +52,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onCloseMobile }) => {
         <>
             <Link to="/employment-statuses" className="block py-2 px-2 hover:bg-gray-700 rounded transition-colors duration-150" onClick={onCloseMobile}>Employment Statuses</Link>
             <Link to="/leave-types" className="block py-2 px-2 hover:bg-gray-700 rounded transition-colors duration-150" onClick={onCloseMobile}>Leave Types</Link>
+            <Link to="/jobtitles" className="block py-2 px-2 hover:bg-gray-700 rounded transition-colors duration-150" onClick={onCloseMobile}>Job Titles</Link>
             <Link to="/paylimits" className="block py-2 px-2 hover:bg-gray-700 rounded transition-colors duration-150" onClick={onCloseMobile}>Pay Limits</Link>
         </>
     );

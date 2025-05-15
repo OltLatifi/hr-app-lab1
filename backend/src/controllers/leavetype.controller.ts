@@ -1,11 +1,11 @@
 import { Request, Response } from 'express';
 import * as leaveTypeService from '../services/leavetype.service';
+import * as companyService from '../services/company.service';
 
 export const create = async (req: Request, res: Response): Promise<Response> => {
     const body = req.body;
     const companyId = req.user?.companyId;
     
-    console.log("companyId ->", companyId);
     if(companyId){
         body.companyId = companyId;
     }
@@ -20,10 +20,21 @@ export const create = async (req: Request, res: Response): Promise<Response> => 
 };
 
 export const findAll = async (req: Request, res: Response): Promise<Response> => {
-    const companyId = req.user?.companyId;
+    let companyId = req.user?.companyId;
 
     if(!companyId){
-        return res.status(401).json({ message: 'Unauthorized' });
+        const userEmail = req.user?.email;
+        if(!userEmail){
+            return res.status(401).json({ message: 'Unauthorized' });
+        }
+
+        const company = await companyService.getCompanyByUserEmail(userEmail);
+
+        if(!company){
+            return res.status(401).json({ message: 'Unauthorized' });
+        }
+
+        companyId = company.id;
     }
 
     try {

@@ -33,7 +33,8 @@ import {
 } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
-import { getEmployees } from '@/services/employeeService';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+
 import { getLeaveTypes } from '@/services/leavetypeService';
 import { getLeaveRequestById, updateLeaveRequest } from '@/services/leaverequestService';
 
@@ -47,11 +48,9 @@ interface LeaveRequestResponse {
 }
 
 const formSchema = z.object({
-    employeeId: z.number().min(1, { message: "Employee is required." }),
     leaveTypeId: z.number().min(1, { message: "Leave type is required." }),
     startDate: z.string().min(1, { message: "Start date is required." }),
     endDate: z.string().min(1, { message: "End date is required." }),
-    status: z.string().min(1, { message: "Status is required." }),
 });
 
 export type LeaveRequestFormValues = z.infer<typeof formSchema>;
@@ -73,11 +72,6 @@ const LeaveRequestUpdatePage: React.FC = () => {
         enabled: !!leaveRequestId,
     });
 
-    const { data: employees } = useQuery({
-        queryKey: ['employees'],
-        queryFn: () => getEmployees(),
-    });
-
     const { data: leaveTypes } = useQuery({
         queryKey: ['leaveTypes'],
         queryFn: () => getLeaveTypes(),
@@ -86,11 +80,9 @@ const LeaveRequestUpdatePage: React.FC = () => {
     const form = useForm<LeaveRequestFormValues>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            employeeId: undefined,
             leaveTypeId: undefined,
             startDate: '',
             endDate: '',
-            status: '',
         }
     });
 
@@ -99,11 +91,9 @@ const LeaveRequestUpdatePage: React.FC = () => {
     useEffect(() => {
         if (leaveRequest) {
             reset({
-                employeeId: leaveRequest.employeeId,
                 leaveTypeId: leaveRequest.leaveTypeId,
                 startDate: leaveRequest.startDate,
                 endDate: leaveRequest.endDate,
-                status: leaveRequest.status,
             });
         }
     }, [leaveRequest, reset]);
@@ -122,8 +112,10 @@ const LeaveRequestUpdatePage: React.FC = () => {
 
     const isMutationLoading = mutation.isPending;
     const isLoading = isQueryLoading || isMutationLoading;
+    const isNotPending = leaveRequest?.status.toLowerCase() !== 'pending';
 
     const onSubmit = (values: LeaveRequestFormValues) => {
+        if (isNotPending) return;
         mutation.mutate(values);
     };
 
@@ -151,42 +143,20 @@ const LeaveRequestUpdatePage: React.FC = () => {
             );
         }
 
+        if (isNotPending) {
+            return (
+                <Alert variant="destructive">
+                    <AlertDescription>
+                        This leave request cannot be updated because its status is {leaveRequest?.status}. Only pending requests can be modified.
+                    </AlertDescription>
+                </Alert>
+            );
+        }
+
         return (
             <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                     <div className="grid grid-cols-2 gap-6">
-                        <FormField
-                            control={form.control}
-                            name="employeeId"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Employee</FormLabel>
-                                    <Select
-                                        onValueChange={(value) => field.onChange(parseInt(value, 10))}
-                                        defaultValue={field.value?.toString()}
-                                        value={field.value?.toString()}
-                                        disabled={isLoading}
-                                    >
-                                        <FormControl>
-                                            <SelectTrigger className="w-full">
-                                                <SelectValue placeholder="Select an employee" />
-                                            </SelectTrigger>
-                                        </FormControl>
-                                        <SelectContent>
-                                            {employees?.map((employee) => (
-                                                <SelectItem
-                                                    key={employee.id}
-                                                    value={employee.id.toString()}
-                                                >
-                                                    {employee.firstName} {employee.lastName}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
                         <FormField
                             control={form.control}
                             name="leaveTypeId"
@@ -194,7 +164,6 @@ const LeaveRequestUpdatePage: React.FC = () => {
                                 <FormItem>
                                     <FormLabel>Leave Type</FormLabel>
                                     <Select
-                                        onValueChange={(value) => field.onChange(parseInt(value, 10))}
                                         defaultValue={field.value?.toString()}
                                         value={field.value?.toString()}
                                         disabled={isLoading}
@@ -248,33 +217,6 @@ const LeaveRequestUpdatePage: React.FC = () => {
                             )}
                         />
                     </div>
-                    <FormField
-                        control={form.control}
-                        name="status"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Status</FormLabel>
-                                <Select
-                                    onValueChange={field.onChange}
-                                    defaultValue={field.value}
-                                    value={field.value}
-                                    disabled={isLoading}
-                                >
-                                    <FormControl>
-                                        <SelectTrigger className="w-full">
-                                            <SelectValue placeholder="Select a status" />
-                                        </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                        <SelectItem value="pending">Pending</SelectItem>
-                                        <SelectItem value="approved">Approved</SelectItem>
-                                        <SelectItem value="rejected">Rejected</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
                     <div className="flex justify-end space-x-2">
                         <Button variant="outline" type="button" onClick={() => navigate('/leaves')} disabled={isLoading}>
                             Cancel

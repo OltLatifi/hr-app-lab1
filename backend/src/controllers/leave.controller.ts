@@ -1,16 +1,22 @@
 import { Request, Response } from 'express';
 import * as leaveService from '../services/leave.service';
-import * as userService from '../services/user.service';
 import * as employeeService from '../services/employee.service';
+import * as companyService from '../services/company.service';
 
 export const create = async (req: Request, res: Response): Promise<Response> => {
     const body = req.body;
-    const companyId = req.user?.companyId;
     const userEmail = req.user?.email;
-
-    if(companyId){
-        body.companyId = companyId;
+    if(!userEmail){
+        return res.status(401).json({ message: 'Unauthorized' });
     }
+
+    const company = await companyService.getCompanyByUserEmail(userEmail);
+
+    if(!company){
+        return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    body.companyId = company.id;
 
     if(userEmail){
         const employee = await employeeService.findEmployeeByEmail(userEmail);
@@ -29,10 +35,21 @@ export const create = async (req: Request, res: Response): Promise<Response> => 
 };
 
 export const findAll = async (req: Request, res: Response): Promise<Response> => {
-    const companyId = req.user?.companyId;
+    let companyId = req.user?.companyId;
 
     if(!companyId){
-        return res.status(401).json({ message: 'Unauthorized' });
+        const userEmail = req.user?.email;
+        if(!userEmail){
+            return res.status(401).json({ message: 'Unauthorized' });
+        }
+    
+        const company = await companyService.getCompanyByUserEmail(userEmail);
+    
+        if(!company){
+            return res.status(401).json({ message: 'Unauthorized' });
+        }
+    
+        companyId = company.id;
     }
 
     try {
@@ -45,16 +62,27 @@ export const findAll = async (req: Request, res: Response): Promise<Response> =>
 };
 
 export const findOne = async (req: Request, res: Response): Promise<Response> => {
-    const companyId = req.user?.companyId;
+    let companyId = req.user?.companyId;
 
     if(!companyId){
-        return res.status(401).json({ message: 'Unauthorized' });
+        const userEmail = req.user?.email;
+        if(!userEmail){
+            return res.status(401).json({ message: 'Unauthorized' });
+        }
+
+        const company = await companyService.getCompanyByUserEmail(userEmail);
+
+        if(!company){
+            return res.status(401).json({ message: 'Unauthorized' });
+        }
+
+        companyId = company.id;
     }
 
     try {
         const id = parseInt(req.params.id, 10);
         if (isNaN(id)) {
-            return res.status(400).json({ message: 'Invalid training ID' });
+            return res.status(400).json({ message: 'Invalid leave request ID' });
         }
         const leaveRequest = await leaveService.findLeaveRequestById(id, companyId);
         if (!leaveRequest) {
@@ -68,10 +96,21 @@ export const findOne = async (req: Request, res: Response): Promise<Response> =>
 };
 
 export const update = async (req: Request, res: Response): Promise<Response> => {
-    const companyId = req.user?.companyId;
+    let companyId = req.user?.companyId;
 
     if(!companyId){
-        return res.status(401).json({ message: 'Unauthorized' });
+        const userEmail = req.user?.email;
+        if(!userEmail){
+            return res.status(401).json({ message: 'Unauthorized' });
+        }
+
+        const company = await companyService.getCompanyByUserEmail(userEmail);
+
+        if(!company){
+            return res.status(401).json({ message: 'Unauthorized' });
+        }
+
+        companyId = company.id;
     }
 
     try {
@@ -91,10 +130,21 @@ export const update = async (req: Request, res: Response): Promise<Response> => 
 };
 
 export const remove = async (req: Request, res: Response): Promise<Response> => {
-    const companyId = req.user?.companyId;
+    let companyId = req.user?.companyId;
 
     if(!companyId){
-        return res.status(401).json({ message: 'Unauthorized' });
+        const userEmail = req.user?.email;
+        if(!userEmail){
+            return res.status(401).json({ message: 'Unauthorized' });
+        }
+
+        const company = await companyService.getCompanyByUserEmail(userEmail);
+
+        if(!company){
+            return res.status(401).json({ message: 'Unauthorized' });
+        }
+
+        companyId = company.id;
     }
 
     try {
@@ -111,4 +161,4 @@ export const remove = async (req: Request, res: Response): Promise<Response> => 
         console.error('Error deleting leave request:', error);
         return res.status(500).json({ message: 'Failed to delete leave request' });
     }
-}; 
+};
