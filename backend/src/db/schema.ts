@@ -27,6 +27,10 @@ export const company = pgTable('company', {
   name: varchar('name', { length: 255 }).notNull(),
   adminId: integer('admin_id')
     .references(() => users.id, { onDelete: 'cascade' }),
+  stripeCustomerId: varchar('stripe_customer_id', { length: 255 }),
+  stripeSubscriptionId: varchar('stripe_subscription_id', { length: 255 }),
+  subscriptionStatus: varchar('subscription_status', { length: 50 }),
+  currentPlanId: varchar('current_plan_id', { length: 255 }),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });

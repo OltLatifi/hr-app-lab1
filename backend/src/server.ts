@@ -20,11 +20,16 @@ import leaveTypeRouter from './routes/leavetype.route';
 import payrollRouter from './routes/payroll.route';
 import payLimitRouter from './routes/paylimit.route';
 import leaveRouter from './routes/leave.route';
+import subscriptionRouter from './routes/subscription.routes';
+import webhookRoutes from './routes/webhook.routes';
 
 export const application = express();
 export let httpServer: ReturnType<typeof http.createServer>;
 
 export const Main = () => {
+    // Stripe needs to be before middlewares
+    application.use('/webhooks/stripe', express.raw({ type: 'application/json' }), webhookRoutes);
+
     application.use(express.urlencoded({ extended: true }));
     application.use(express.json());
     application.use(cookieParser());
@@ -48,7 +53,7 @@ export const Main = () => {
     application.use('/leavetypes', leaveTypeRouter);
     application.use('/paylimits', payLimitRouter);
     application.use('/leaverequests', leaveRouter);
-    
+    application.use('/subscriptions', subscriptionRouter);
     application.use(routeNotFound);
 
     httpServer = http.createServer(application);
