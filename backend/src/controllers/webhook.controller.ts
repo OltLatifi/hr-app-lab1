@@ -106,7 +106,7 @@ const handleSubscriptionDeletion = async (event: WebhookEvent): Promise<void> =>
 
 export const handleStripeWebhook = async (req: Request, res: Response): Promise<Response> => {
     const sig = req.headers['stripe-signature'];
-    const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET || 'whsec_cc5ca01de41566d4ad7f776153bc47c312a3de0bc69fff41de6824ad838f2c5f';
+    const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
     if (!sig) {
         logging.error('Missing stripe signature');
