@@ -52,7 +52,7 @@ import LeaveReviewListPage from './pages/leave/leave-review';
 import LeaveCalendarPage from './pages/leave/leave-calendar';
 
 import HomePage from './pages/home/index';
-
+import SubscriptionManagement from './pages/subscription/subscription-manager';
 
 function AppContent() {
   return (
@@ -105,6 +105,8 @@ function AppContent() {
             <Route path="/paylimits/add" element={<PayLimitAddPage />} />
             <Route path="/paylimits/add/:departmentId" element={<PayLimitAddPage />} />
             <Route path="/paylimits/edit/:id" element={<PayLimitUpdatePage />} />
+
+            <Route path="/subscription" element={<SubscriptionManagement />} />
           </Route>
 
           <Route element={<ProtectedRoute requiredRole="Employee" />}>

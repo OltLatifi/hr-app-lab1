@@ -1,5 +1,5 @@
 import db from "../db";
-import { employees } from "../db/schema";
+import { employees, company } from "../db/schema";
 import { eq, and, or, like, SQL, sql } from "drizzle-orm";
 
 type Employee = typeof employees.$inferSelect;
@@ -137,4 +137,31 @@ export const deleteEmployee = async (employeeId: number, companyId: number): Pro
         .returning() as Array<Employee>;
     
     return result.length > 0 ? result[0] : null;
+};
+
+
+/**
+ * Evaluates the number of employees in a company.
+ * @param companyId - The ID of the company to evaluate.
+ * @returns The number of employees in the company.
+ */
+export const allowedToAddEmployee = async (companyId: number, numberOfEmployees: number = 10): Promise<boolean> => {
+    const companyData = await db.query.company.findFirst({
+        where: eq(company.id, companyId),
+    });
+    
+    if(!companyData){
+        return false;
+    }
+
+    console.log(companyData.subscriptionStatus);
+    if(companyData.subscriptionStatus === 'active'){
+        return true;
+    }
+
+    const result = await db.query.employees.findMany({
+        where: eq(employees.companyId, companyId),
+    });
+    console.log(result.length);
+    return result.length < numberOfEmployees;
 };

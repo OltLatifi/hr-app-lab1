@@ -1,3 +1,4 @@
+import { stripe } from '../config/stripe';
 import db from '../db';
 import { company, employees, users } from '../db/schema';
 import { eq } from 'drizzle-orm';
@@ -64,9 +65,19 @@ export const findAllCompanies = async () => {
  */
 export const createCompany = async (name: string): Promise<CreatedCompany> => {
     try {
+        const stripeCustomer = await stripe.customers.create({
+            name,
+            metadata: {
+                companyName: name
+            }
+        });
+
         const [newCompany] = await db
             .insert(company)
-            .values({ name })
+            .values({ 
+                name,
+                stripeCustomerId: stripeCustomer.id
+            })
             .returning();
 
         if (!newCompany) {
@@ -113,7 +124,7 @@ export const getCompanyByUserEmail = async (email: string) => {
         where: eq(employees.email, email),
     });
 
-    if(!employee){
+    if (!employee) {
         return null;
     }
 
