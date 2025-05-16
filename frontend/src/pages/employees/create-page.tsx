@@ -42,7 +42,7 @@ export type EmployeeFormValues = z.infer<typeof formSchema>;
 const EmployeeCreatePage: React.FC = () => {
     const navigate = useNavigate();
     const queryClient = useQueryClient();
-    const [subscriptionError, setSubscriptionError] = React.useState<string | null>(null);
+    const [error, setError] = React.useState<string | null>(null);
 
     const form = useForm<EmployeeFormValues>({
         resolver: zodResolver(formSchema),
@@ -67,11 +67,7 @@ const EmployeeCreatePage: React.FC = () => {
             navigate('/employees');
         },
         onError: (error: any) => {
-            if (error.response?.data?.message?.includes('subscribe to a plan')) {
-                setSubscriptionError('You have reached the maximum number of employees allowed in your current plan.');
-            } else {
-                console.error('Create employee mutation error:', error);
-            }
+            setError(error.response?.data?.message);
         },
     });
 
@@ -109,14 +105,16 @@ const EmployeeCreatePage: React.FC = () => {
                     <CardDescription>Enter the details for the new employee.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    {subscriptionError && (
+                    {error && (
                         <Alert variant="destructive" className="mb-6">
                             <AlertCircle className="h-4 w-4" />
                             <AlertDescription className="flex items-center gap-2">
-                                {subscriptionError}
-                                <Link to="/subscription" className="font-medium underline">
-                                    Upgrade your plan
-                                </Link>
+                                {error}
+                                {error.includes('subscribe to a plan') && (
+                                    <Link to="/subscription" className="font-medium underline">
+                                        Upgrade your plan
+                                    </Link>
+                                )}
                             </AlertDescription>
                         </Alert>
                     )}

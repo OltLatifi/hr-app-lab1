@@ -15,7 +15,6 @@ export const create = async (req: Request, res: Response): Promise<Response> => 
     const body = req.body;
     body.companyId = companyId;
 
-    console.log("======= here ======")
     const allowedToAdd = await employeeService.allowedToAddEmployee(companyId, 1);
 
     if(!allowedToAdd){
@@ -23,6 +22,10 @@ export const create = async (req: Request, res: Response): Promise<Response> => 
     }
 
     try {
+        const employeeExists = await employeeService.findEmployeeByEmail(body.email);
+        if(employeeExists){
+            return res.status(400).json({ message: 'Employee already exists' });
+        }
         const employee = await employeeService.createEmployee(body);
         const company = await companyService.findCompanyById(companyId);
         const invitation = await createInvitation(employee.email, companyId, currentUserId, 'Employee');
@@ -105,6 +108,11 @@ export const update = async (req: Request, res: Response): Promise<Response> => 
         const id = parseInt(req.params.id, 10);
         if (isNaN(id)) {
             return res.status(400).json({ message: 'Invalid employee ID' });
+        }
+
+        const employeeExists = await employeeService.findEmployeeByEmail(req.body.email);
+        if(employeeExists){
+            return res.status(400).json({ message: 'Employee already exists' });
         }
         const employee = await employeeService.updateEmployee(id, companyId, req.body);
         if (!employee) {

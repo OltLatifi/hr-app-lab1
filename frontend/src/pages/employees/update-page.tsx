@@ -40,7 +40,7 @@ import { getJobTitles } from '@/services/jobtitleService';
 import { getDepartments } from '@/services/departmentService';
 import { getEmployees } from '@/services/employeeService';
 import { getEmploymentStatuses } from '@/services/employmentstatusService';
-
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 const formSchema = z.object({
     firstName: z
         .string()
@@ -98,7 +98,7 @@ const EmployeeUpdatePage: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const employeeId = Number(id);
     const queryClient = useQueryClient();
-
+    const [error, setError] = React.useState<string | null>(null);
     const {
         data: employee,
         isLoading: isQueryLoading,
@@ -178,6 +178,7 @@ const EmployeeUpdatePage: React.FC = () => {
             navigate('/employees');
         },
         onError: (error: any) => {
+            setError(error.response?.data?.message);
             console.error('Update employee mutation error:', error);
         },
     });
@@ -215,6 +216,12 @@ const EmployeeUpdatePage: React.FC = () => {
 
         return (
             <Form {...form}>
+                {error && (
+                    <Alert variant="destructive" className="mb-4">
+                        <AlertTitle>Error</AlertTitle>
+                        <AlertDescription>{error}</AlertDescription>
+                    </Alert>
+                )}
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                     <div className="grid grid-cols-2 gap-6">
                         <FormField
