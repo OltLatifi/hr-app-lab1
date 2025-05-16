@@ -54,6 +54,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onCloseMobile }) => {
             <Link to="/leave-types" className="block py-2 px-2 hover:bg-gray-700 rounded transition-colors duration-150" onClick={onCloseMobile}>Leave Types</Link>
             <Link to="/jobtitles" className="block py-2 px-2 hover:bg-gray-700 rounded transition-colors duration-150" onClick={onCloseMobile}>Job Titles</Link>
             <Link to="/paylimits" className="block py-2 px-2 hover:bg-gray-700 rounded transition-colors duration-150" onClick={onCloseMobile}>Pay Limits</Link>
+            <Link to="/subscription" className="block py-2 px-2 hover:bg-gray-700 rounded transition-colors duration-150" onClick={onCloseMobile}>Subscription</Link>
         </>
     );
 
@@ -65,7 +66,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onCloseMobile }) => {
         >
             <div className="flex justify-between items-center mb-6">
                 <div className="text-2xl font-bold">
-                    <Link to="/" onClick={onCloseMobile}>HR Management System</Link>
+                    <Link to="/" onClick={onCloseMobile}>HR Management</Link>
                 </div>
                 <button 
                     onClick={onCloseMobile} 
