@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { createEmployee, CreateEmployeePayload } from '@/services/employeeService';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,6 +21,8 @@ import { getJobTitles } from '@/services/jobtitleService';
 import { getDepartments } from '@/services/departmentService';
 import { getEmployees } from '@/services/employeeService';
 import { getEmploymentStatuses } from '@/services/employmentstatusService';
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 
 const formSchema = z.object({
     firstName: z.string().min(1, { message: "First name is required." }).max(255, { message: "First name cannot exceed 255 characters." }),
@@ -40,6 +42,7 @@ export type EmployeeFormValues = z.infer<typeof formSchema>;
 const EmployeeCreatePage: React.FC = () => {
     const navigate = useNavigate();
     const queryClient = useQueryClient();
+    const [subscriptionError, setSubscriptionError] = React.useState<string | null>(null);
 
     const form = useForm<EmployeeFormValues>({
         resolver: zodResolver(formSchema),
@@ -64,7 +67,11 @@ const EmployeeCreatePage: React.FC = () => {
             navigate('/employees');
         },
         onError: (error: any) => {
-            console.error('Create employee mutation error:', error);
+            if (error.response?.data?.message?.includes('subscribe to a plan')) {
+                setSubscriptionError('You have reached the maximum number of employees allowed in your current plan.');
+            } else {
+                console.error('Create employee mutation error:', error);
+            }
         },
     });
 
@@ -74,22 +81,22 @@ const EmployeeCreatePage: React.FC = () => {
         mutation.mutate(values);
     };
 
-    const { data: jobTitles } = useQuery({
+    const { data: jobTitles = [] } = useQuery({
         queryKey: ['jobTitles'],
         queryFn: getJobTitles
-        });
+    });
 
-    const { data: departments } = useQuery({
+    const { data: departments = [] } = useQuery({
         queryKey: ['departments'],
         queryFn: getDepartments
     });
 
-    const { data: employees } = useQuery({
+    const { data: employees = [] } = useQuery({
         queryKey: ['employees'],
-        queryFn: getEmployees
+        queryFn: () => getEmployees()
     });
 
-    const { data: employmentStatuses } = useQuery({
+    const { data: employmentStatuses = [] } = useQuery({
         queryKey: ['employmentStatuses'],
         queryFn: getEmploymentStatuses
     });
@@ -102,6 +109,17 @@ const EmployeeCreatePage: React.FC = () => {
                     <CardDescription>Enter the details for the new employee.</CardDescription>
                 </CardHeader>
                 <CardContent>
+                    {subscriptionError && (
+                        <Alert variant="destructive" className="mb-6">
+                            <AlertCircle className="h-4 w-4" />
+                            <AlertDescription className="flex items-center gap-2">
+                                {subscriptionError}
+                                <Link to="/subscription" className="font-medium underline">
+                                    Upgrade your plan
+                                </Link>
+                            </AlertDescription>
+                        </Alert>
+                    )}
                     <Form {...form}>
                         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                             <div className="grid grid-cols-2 gap-6">

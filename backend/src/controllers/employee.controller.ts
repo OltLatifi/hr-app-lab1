@@ -15,6 +15,13 @@ export const create = async (req: Request, res: Response): Promise<Response> => 
     const body = req.body;
     body.companyId = companyId;
 
+    console.log("======= here ======")
+    const allowedToAdd = await employeeService.allowedToAddEmployee(companyId, 1);
+
+    if(!allowedToAdd){
+        return res.status(400).json({ message: 'You are not allowed to add more employees, subscribe to a plan to add more employees' });
+    }
+
     try {
         const employee = await employeeService.createEmployee(body);
         const company = await companyService.findCompanyById(companyId);
@@ -46,7 +53,6 @@ export const findAll = async (req: Request, res: Response): Promise<Response> =>
         return res.status(401).json({ message: 'Unauthorized' });
     }
 
-    // Extract filter parameters from query string
     const { departmentId, managerId, statusId, searchTerm } = req.query;
 
     const filters = {

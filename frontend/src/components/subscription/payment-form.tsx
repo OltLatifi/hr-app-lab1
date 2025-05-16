@@ -1,9 +1,7 @@
 import { useState } from 'react';
 import { useStripe, useElements, PaymentElement } from '@stripe/react-stripe-js';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Stripe, StripeError } from '@stripe/stripe-js';
 
 interface PaymentFormProps {
   onSuccess: (paymentMethodId: string) => void;
@@ -47,36 +45,30 @@ export function PaymentForm({ onSuccess, onCancel }: PaymentFormProps) {
   };
 
   return (
-    <Card className="w-full max-w-md mx-auto">
-      <CardHeader>
-        <CardTitle>Payment Details</CardTitle>
-      </CardHeader>
       <form onSubmit={handleSubmit}>
-        <CardContent>
+
           {error && (
             <Alert variant="destructive" className="mb-4">
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
           <PaymentElement />
-        </CardContent>
-        <CardFooter className="flex justify-between">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onCancel}
-            disabled={isProcessing}
-          >
-            Cancel
-          </Button>
-          <Button
-            type="submit"
-            disabled={!stripe || isProcessing}
-          >
-            {isProcessing ? 'Processing...' : 'Set Up Payment Method'}
-          </Button>
-        </CardFooter>
+          <div className="flex justify-end gap-2 mt-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onCancel}
+              disabled={isProcessing}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              disabled={!stripe || isProcessing}
+            >
+              {isProcessing ? 'Processing...' : 'Set Up Payment Method'}
+            </Button>
+          </div>
       </form>
-    </Card>
   );
 } 

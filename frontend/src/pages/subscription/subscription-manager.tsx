@@ -1,11 +1,11 @@
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { PaymentForm } from '@/components/subscription/PaymentForm';
-import { StripeProvider } from '@/components/providers/StripeProvider';
+import { PaymentForm } from '@/components/subscription/payment-form';
+import { StripeProvider } from '@/components/providers/stripe-provider';
 import { useAuthStore } from '@/stores/auth-store';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { getSubscriptionPlans, createSubscription } from '@/services/subscriptionService';
+import { Button } from '@/components/ui/button';
+import { getSubscriptionPlans, createSubscription, cancelSubscription, getCurrentSubscription } from '@/services/subscriptionService';
 
 interface Plan {
     name: string;
@@ -17,51 +17,101 @@ interface PlansResponse {
     [key: string]: Plan;
 }
 
+interface SubscriptionStatus {
+    id: string;
+    status: string;
+    cancelAtPeriodEnd: boolean;
+    currentPeriodEnd: number;
+    plan: {
+        id?: string;
+        name: string;
+        priceId?: string;
+    };
+    clientSecret?: string;
+}
+
 export default function SubscriptionManagement() {
     const { user } = useAuthStore();
     const [plans, setPlans] = useState<PlansResponse>({});
     const [clientSecret, setClientSecret] = useState<string | null>(null);
-    const [showPayment, setShowPayment] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
     const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
+    const [subscriptionStatus, setSubscriptionStatus] = useState<SubscriptionStatus | null>(null);
 
-    const handleStartSubscription = async () => {
+    const fetchSubscriptionStatus = async () => {
         if (!user?.companyId) {
-            setError("You must be associated with a company to subscribe");
+            setError("You must be associated with a company to manage subscription");
             return;
         }
-
         setLoading(true);
         setError(null);
         try {
-            console.log('Fetching subscription plans...');
-            const response = await getSubscriptionPlans();
-            console.log('Plans response:', response);
-            setPlans(response);
-            const planId = Object.keys(response)[0];
-            setSelectedPlanId(planId);
-
-            console.log('Creating initial subscription...');
-            const subscriptionResponse = await createSubscription(
-                user.companyId.toString(),
-                response[planId].priceId,
-                '' // We'll get the payment method later
-            );
-            console.log('Subscription response:', subscriptionResponse);
-
-            if (subscriptionResponse?.clientSecret) {
-                console.log('Setting client secret and showing payment form');
+            const [plansResponse, subscriptionResponse] = await Promise.all([
+                getSubscriptionPlans(),
+                getCurrentSubscription(user.companyId.toString())
+            ]);
+            setPlans(plansResponse);
+            if (subscriptionResponse?.status === 'active') {
+                setSubscriptionStatus(subscriptionResponse);
+                setClientSecret(null);
+            } else if (subscriptionResponse?.status === 'incomplete' && subscriptionResponse.clientSecret) {
                 setClientSecret(subscriptionResponse.clientSecret);
-                setShowPayment(true);
+                setSubscriptionStatus(subscriptionResponse);
             } else {
-                console.error('No client secret in response');
-                setError("Failed to initialize payment");
+                const firstPlanId = Object.keys(plansResponse)[0];
+                setSelectedPlanId(firstPlanId);
+                setSubscriptionStatus(null);
+                setClientSecret(null);
             }
         } catch (error) {
-            console.error('Error creating subscription:', error);
-            setError("Failed to create subscription");
+            setError("Failed to fetch subscription status");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleCancelSubscription = async () => {
+        if (!subscriptionStatus?.id) {
+            setError("No active subscription to cancel");
+            return;
+        }
+        setLoading(true);
+        setError(null);
+        try {
+            const response = await cancelSubscription(subscriptionStatus.id);
+            setSubscriptionStatus(response);
+            setSuccess("Your subscription will be cancelled at the end of the current billing period");
+        } catch (error) {
+            setError("Failed to cancel subscription");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchSubscriptionStatus();
+    }, [user?.companyId]);
+
+    const handleStartSubscription = async () => {
+        if (!user?.companyId || !selectedPlanId) return;
+        setLoading(true);
+        setError(null);
+        try {
+            const response = await createSubscription(
+                user.companyId.toString(),
+                plans[selectedPlanId].priceId,
+                ''
+            );
+            if (response?.clientSecret) {
+                setClientSecret(response.clientSecret);
+                setSubscriptionStatus({ id: '', status: 'incomplete', cancelAtPeriodEnd: false, currentPeriodEnd: 0, plan: { name: plans[selectedPlanId].name, id: selectedPlanId, priceId: plans[selectedPlanId].priceId }, clientSecret: response.clientSecret });
+            } else {
+                setError('Failed to initialize payment');
+            }
+        } catch (error) {
+            setError('Failed to start subscription');
         } finally {
             setLoading(false);
         }
@@ -72,44 +122,47 @@ export default function SubscriptionManagement() {
             setError("Missing required information for subscription");
             return;
         }
-
         setLoading(true);
         setError(null);
         try {
-            console.log('Creating final subscription with payment method...');
             const response = await createSubscription(
                 user.companyId.toString(),
                 plans[selectedPlanId].priceId,
                 paymentMethodId
             );
-            console.log('Final subscription response:', response);
-            
             if (response.status === 'active') {
                 setSuccess("Your subscription has been activated successfully");
+                setSubscriptionStatus(response);
+                setClientSecret(null);
+            } else if (response.status === 'incomplete' && response.clientSecret) {
+                setClientSecret(response.clientSecret);
+                setSubscriptionStatus(response);
+                setError("Payment incomplete. Please try again.");
             } else {
                 setError("Subscription is not active. Please contact support if this persists.");
             }
         } catch (error) {
-            console.error('Error creating subscription:', error);
             setError("Failed to create subscription");
         } finally {
             setLoading(false);
-            setShowPayment(false);
             setSelectedPlanId(null);
-            setClientSecret(null);
         }
     };
 
     const handlePaymentCancel = () => {
-        setShowPayment(false);
         setSelectedPlanId(null);
         setClientSecret(null);
         setError("Subscription process was cancelled");
     };
 
+    const formatDate = (timestamp?: number) => {
+        if (!timestamp) return null;
+        return new Date(timestamp * 1000).toLocaleDateString();
+    };
+
     return (
         <div className="container py-8">
-            <Card>
+            <Card className="w-full max-w-xl mx-auto">
                 <CardHeader>
                     <CardTitle>Subscription Management</CardTitle>
                     <CardDescription>
@@ -127,25 +180,55 @@ export default function SubscriptionManagement() {
                             <AlertDescription>{success}</AlertDescription>
                         </Alert>
                     )}
-                    <p className="text-sm text-muted-foreground mb-4">
-                        Subscribe to access all features of our platform.
-                    </p>
-                    {!showPayment ? (
-                        <Button
-                            onClick={handleStartSubscription}
-                            disabled={loading || !user?.companyId}
-                        >
-                            {loading ? 'Loading...' : 'Start Subscription'}
-                        </Button>
+                    {loading ? (
+                        <div>Loading subscription details...</div>
+                    ) : subscriptionStatus && subscriptionStatus.status === 'active' ? (
+                        <div className="space-y-4">
+                            <div className="p-4 border rounded-lg">
+                                <h3 className="font-medium mb-2">Current Subscription</h3>
+                                <p className="text-sm text-muted-foreground capitalize">
+                                    Status: {subscriptionStatus.status}
+                                </p>
+                                <p className="text-sm text-muted-foreground capitalize">
+                                    Plan: Pro
+                                </p>
+                                {subscriptionStatus.currentPeriodEnd && (
+                                    <p className="text-sm text-muted-foreground">
+                                        Current Period Ends: {formatDate(subscriptionStatus.currentPeriodEnd)}
+                                    </p>
+                                )}
+                                {subscriptionStatus.cancelAtPeriodEnd && (
+                                    <p className="text-sm text-red-500 mt-2">
+                                        Your subscription will end soon
+                                    </p>
+                                )}
+                            </div>
+                            {!subscriptionStatus.cancelAtPeriodEnd && (
+                                <Button
+                                    variant="destructive"
+                                    onClick={handleCancelSubscription}
+                                    disabled={loading}
+                                >
+                                    {loading ? 'Processing...' : 'Cancel Subscription'}
+                                </Button>
+                            )}
+                        </div>
+                    ) : clientSecret ? (
+                        <StripeProvider clientSecret={clientSecret}>
+                            <PaymentForm
+                                onSuccess={handlePaymentSuccess}
+                                onCancel={handlePaymentCancel}
+                            />
+                        </StripeProvider>
                     ) : (
-                        clientSecret && (
-                            <StripeProvider clientSecret={clientSecret}>
-                                <PaymentForm
-                                    onSuccess={handlePaymentSuccess}
-                                    onCancel={handlePaymentCancel}
-                                />
-                            </StripeProvider>
-                        )
+                        <>
+                            <p className="text-sm text-muted-foreground mb-4">
+                                Subscribe to access all features of our platform.
+                            </p>
+                            <Button onClick={handleStartSubscription} disabled={loading || !selectedPlanId}>
+                                {loading ? 'Loading...' : 'Start Subscription'}
+                            </Button>
+                        </>
                     )}
                 </CardContent>
             </Card>

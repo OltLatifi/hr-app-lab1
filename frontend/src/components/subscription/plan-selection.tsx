@@ -26,7 +26,7 @@ export function PlanSelection({ plans, onSelectPlan, currentPlanId }: PlanSelect
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
       {Object.entries(plans).map(([planId, plan]) => (
-        <Card 
+        <Card
           key={planId}
           className={`relative ${selectedPlan === planId ? 'border-primary' : ''}`}
         >
@@ -50,7 +50,7 @@ export function PlanSelection({ plans, onSelectPlan, currentPlanId }: PlanSelect
             </ul>
           </CardContent>
           <CardFooter>
-            <Button 
+            <Button
               className="w-full"
               variant={selectedPlan === planId ? 'default' : 'outline'}
               onClick={() => handlePlanSelect(planId)}

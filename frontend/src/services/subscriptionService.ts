@@ -10,6 +10,16 @@ export const getSubscriptionPlans = async () => {
     }
 }; 
 
+export const getCurrentSubscription = async (companyId: string) => {
+    try {
+        const response = await apiClient.get(`/subscriptions/status/${companyId}`);
+        return response.data;
+    } catch (error) {
+        console.error('API Error Getting Subscription Status:', error);
+        throw error;
+    }
+};
+
 export const createSubscription = async (companyId: string, priceId: string, paymentMethodId: string) => {
     try {
         const response = await apiClient.post('/subscriptions/create', { 
