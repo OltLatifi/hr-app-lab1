@@ -17,9 +17,6 @@ import {
 } from "@/components/ui/select"
 import { Company } from "@/types/company";
 
-interface Props {
-    isAuthorized: boolean;
-}
 
 const inviteFormSchema = z.object({
     invitedUserEmail: z.string().email({ message: "Invalid email address." }),
@@ -31,11 +28,11 @@ const inviteFormSchema = z.object({
 
 type InviteFormSchemaType = z.infer<typeof inviteFormSchema>;
 
-function InviteUser({ isAuthorized }: Props) {
+function InviteUser() {
     const { data: companies, isLoading: isLoadingCompanies, error: companiesError } = useQuery<Company[], Error>({
         queryKey: ['companies'],
         queryFn: getAllCompanies,
-        enabled: isAuthorized === true,
+        enabled: true,
     });
 
     const inviteForm = useForm<InviteFormSchemaType>({
@@ -106,7 +103,7 @@ function InviteUser({ isAuthorized }: Props) {
                                     <SelectContent>
                                         {isLoadingCompanies && <SelectItem value="loading" disabled>Loading...</SelectItem>}
                                         {companiesError && <SelectItem value="error" disabled>Error loading</SelectItem>}
-                                        {companies && companies.map((company) => (
+                                        {companies && companies.filter((company) => company.adminId === null).map((company) => (
                                             <SelectItem key={company.id} value={company.id.toString()}>
                                                 {company.name} (ID: {company.id})
                                             </SelectItem>
