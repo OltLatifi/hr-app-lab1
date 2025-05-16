@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, ChangeEvent } from 'react';
 
 import {
     useQuery,
@@ -28,6 +28,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 import { getleaves, updateLeaveRequest } from '@/services/leaverequestService';
 import { Link } from 'react-router-dom';
 interface LeaveRequestResponse {
@@ -50,6 +51,7 @@ type StatusFilter = 'all' | 'pending' | 'approved' | 'rejected';
 
 const LeaveReviewListPage: React.FC = () => {
     const [statusFilter, setStatusFilter] = useState<StatusFilter>('pending');
+    const [currentSearchInput, setCurrentSearchInput] = useState<string>('');
     const queryClient = useQueryClient();
 
     const {
@@ -94,11 +96,29 @@ const LeaveReviewListPage: React.FC = () => {
         updateLeaveMutation.mutate({ id, status: 'rejected' });
     };
 
+    const handleSearchInputChange = (event: ChangeEvent<HTMLInputElement>) => {
+        setCurrentSearchInput(event.target.value);
+    };
+
+    const filterLeaveRequests = (leaveRequests: LeaveRequestResponse[], searchTerm: string): LeaveRequestResponse[] => {
+        const normalizedSearchTerm = searchTerm.toLowerCase().trim();
+        if (!normalizedSearchTerm) return leaveRequests;
+        
+        return leaveRequests.filter(leave => 
+            leave.employee.firstName.toLowerCase().includes(normalizedSearchTerm) ||
+            leave.employee.lastName.toLowerCase().includes(normalizedSearchTerm) ||
+            leave.leaveType.typeName.toLowerCase().includes(normalizedSearchTerm) ||
+            leave.status.toLowerCase().includes(normalizedSearchTerm) ||
+            leave.id.toString().includes(normalizedSearchTerm)
+        );
+    };
+
     const getFilteredLeaves = () => {
-        if (statusFilter === 'all') {
-            return leaves;
+        let filteredByStatus = leaves;
+        if (statusFilter !== 'all') {
+            filteredByStatus = leaves.filter(leave => leave.status.toLowerCase() === statusFilter);
         }
-        return leaves.filter(leave => leave.status.toLowerCase() === statusFilter);
+        return filterLeaveRequests(filteredByStatus, currentSearchInput);
     };
 
     const renderTableContent = () => {
@@ -128,7 +148,7 @@ const LeaveReviewListPage: React.FC = () => {
             return (
                 <TableRow>
                     <TableCell colSpan={7} className="h-24 text-center">
-                        No leave requests found.
+                        {leaves.length === 0 ? 'No leave requests found.' : 'No matching leave requests found.'}
                     </TableCell>
                 </TableRow>
             );
@@ -180,6 +200,12 @@ const LeaveReviewListPage: React.FC = () => {
                         </CardDescription>
                     </div>
                     <div className="flex items-center gap-4">
+                        <Input
+                            placeholder="Search leave requests..."
+                            value={currentSearchInput}
+                            onChange={handleSearchInputChange}
+                            className="max-w-xs"
+                        />
                         <Select
                             value={statusFilter}
                             onValueChange={(value: StatusFilter) => setStatusFilter(value)}

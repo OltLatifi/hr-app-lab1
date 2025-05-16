@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, ChangeEvent } from 'react';
 
 import {
     useQuery,
@@ -31,10 +31,12 @@ import {
 } from "@/components/ui/card";
 import { Link } from 'react-router-dom';
 import { deletePayLimit, getPayLimits, PayLimitResponse } from '@/services/paylimitService';
+import { Input } from "@/components/ui/input";
 
 const PayLimitListPage: React.FC = () => {
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
     const [payLimitToDelete, setPayLimitToDelete] = useState<PayLimitResponse | null>(null);
+    const [currentSearchInput, setCurrentSearchInput] = useState<string>('');
 
     const queryClient = useQueryClient();
 
@@ -74,11 +76,26 @@ const PayLimitListPage: React.FC = () => {
         deleteMutation.mutate(payLimitToDelete.id);
     };
 
+    const handleSearchInputChange = (event: ChangeEvent<HTMLInputElement>) => {
+        setCurrentSearchInput(event.target.value);
+    };
+
+    const filterPayLimits = (paylimits: PayLimitResponse[], searchTerm: string): PayLimitResponse[] => {
+        const normalizedSearchTerm = searchTerm.toLowerCase().trim();
+        if (!normalizedSearchTerm) return paylimits;
+        
+        return paylimits.filter(paylimit => 
+            paylimit.department?.departmentName?.toLowerCase().includes(normalizedSearchTerm) ||
+            paylimit.id.toString().includes(normalizedSearchTerm) ||
+            paylimit.limit.toString().includes(normalizedSearchTerm)
+        );
+    };
+
     const renderTableContent = () => {
         if (isLoading) {
             return (
                 <TableRow>
-                    <TableCell colSpan={3} className="h-24 text-center">
+                    <TableCell colSpan={4} className="h-24 text-center">
                         Loading pay limits...
                     </TableCell>
                 </TableRow>
@@ -88,24 +105,26 @@ const PayLimitListPage: React.FC = () => {
         if (isError) {
             return (
                 <TableRow>
-                    <TableCell colSpan={3} className="h-24 text-center text-destructive">
+                    <TableCell colSpan={4} className="h-24 text-center text-destructive">
                         Error loading pay limits: {error?.message || 'Unknown error'}
                     </TableCell>
                 </TableRow>
             );
         }
 
-        if (!paylimits || paylimits.length === 0) {
+        const filteredPayLimits = filterPayLimits(paylimits, currentSearchInput);
+
+        if (!filteredPayLimits || filteredPayLimits.length === 0) {
             return (
                 <TableRow>
-                    <TableCell colSpan={3} className="h-24 text-center">
-                        No pay limits found.
+                    <TableCell colSpan={4} className="h-24 text-center">
+                        {paylimits.length === 0 ? 'No pay limits found.' : 'No matching pay limits found.'}
                     </TableCell>
                 </TableRow>
             );
         }
 
-        return paylimits.map((paylimit) => (
+        return filteredPayLimits.map((paylimit) => (
             <TableRow key={paylimit.id}>
                 <TableCell className="font-medium w-[100px]">{paylimit.id}</TableCell>
                 <TableCell>{paylimit.limit}</TableCell>
@@ -141,6 +160,16 @@ const PayLimitListPage: React.FC = () => {
                         <Link to="/paylimits/add">Add New Pay Limit</Link>
                     </Button>
                 </CardHeader>
+                <CardContent>
+                    <div className="mb-4 flex flex-wrap gap-4">
+                        <Input
+                            placeholder="Search pay limits..."
+                            value={currentSearchInput}
+                            onChange={handleSearchInputChange}
+                            className="max-w-xs flex-grow"
+                        />
+                    </div>
+                </CardContent>
                 <CardContent>
                     <Table>
                         <TableHeader>

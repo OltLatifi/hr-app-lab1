@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, ChangeEvent } from 'react';
 
 import {
     useQuery,
@@ -31,10 +31,12 @@ import {
 } from "@/components/ui/card";
 import { Link } from 'react-router-dom';
 import { deletePayroll, getPayrolls, PayrollResponse } from '@/services/payrollService';
+import { Input } from "@/components/ui/input";
 
 const PayrollListPage: React.FC = () => {
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
     const [payrollToDelete, setPayrollToDelete] = useState<PayrollResponse | null>(null);
+    const [currentSearchInput, setCurrentSearchInput] = useState<string>('');
 
     const queryClient = useQueryClient();
 
@@ -74,11 +76,28 @@ const PayrollListPage: React.FC = () => {
         deleteMutation.mutate(payrollToDelete.id);
     };
 
+    const handleSearchInputChange = (event: ChangeEvent<HTMLInputElement>) => {
+        setCurrentSearchInput(event.target.value);
+    };
+
+    const filterPayrolls = (payrolls: PayrollResponse[], searchTerm: string): PayrollResponse[] => {
+        const normalizedSearchTerm = searchTerm.toLowerCase().trim();
+        if (!normalizedSearchTerm) return payrolls;
+        
+        return payrolls.filter(payroll => 
+            payroll.employee.firstName.toLowerCase().includes(normalizedSearchTerm) ||
+            payroll.employee.lastName.toLowerCase().includes(normalizedSearchTerm) ||
+            payroll.id.toString().includes(normalizedSearchTerm) ||
+            payroll.grossPay.toString().includes(normalizedSearchTerm) ||
+            payroll.netPay.toString().includes(normalizedSearchTerm)
+        );
+    };
+
     const renderTableContent = () => {
         if (isLoadingPayroll) {
             return (
                 <TableRow>
-                    <TableCell colSpan={3} className="h-24 text-center">
+                    <TableCell colSpan={7} className="h-24 text-center">
                         Loading payrolls...
                     </TableCell>
                 </TableRow>
@@ -95,17 +114,19 @@ const PayrollListPage: React.FC = () => {
             );
         }
 
-        if (!payrolls || payrolls.length === 0) {
+        const filteredPayrolls = filterPayrolls(payrolls, currentSearchInput);
+
+        if (!filteredPayrolls || filteredPayrolls.length === 0) {
             return (
                 <TableRow>
                     <TableCell colSpan={7} className="h-24 text-center">
-                        No payrolls found.
+                        {payrolls.length === 0 ? 'No payrolls found.' : 'No matching payrolls found.'}
                     </TableCell>
                 </TableRow>
             );
         }
 
-        return payrolls.map((payroll: PayrollResponse) => (
+        return filteredPayrolls.map((payroll: PayrollResponse) => (
             <TableRow key={payroll.id}>
                 <TableCell className="font-medium w-[100px]">{payroll.id}</TableCell>
                 <TableCell>{payroll.employee.firstName} {payroll.employee.lastName}</TableCell>
@@ -144,6 +165,16 @@ const PayrollListPage: React.FC = () => {
                         <Link to="/payrolls/add">Add New Payroll</Link>
                     </Button>
                 </CardHeader>
+                <CardContent>
+                    <div className="mb-4 flex flex-wrap gap-4">
+                        <Input
+                            placeholder="Search payrolls..."
+                            value={currentSearchInput}
+                            onChange={handleSearchInputChange}
+                            className="max-w-xs flex-grow"
+                        />
+                    </div>
+                </CardContent>
                 <CardContent>
                     <Table>
                         <TableHeader>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, ChangeEvent } from 'react';
 
 import {
     useQuery,
@@ -31,10 +31,12 @@ import {
 } from "@/components/ui/card";
 import { Link } from 'react-router-dom';
 import { deleteEmploymentStatus, getEmploymentStatuses, EmploymentStatusResponse } from '@/services/employmentstatusService';
+import { Input } from "@/components/ui/input";
 
 const EmploymentStatusListPage: React.FC = () => {
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
     const [employmentStatusToDelete, setEmploymentStatusToDelete] = useState<EmploymentStatusResponse | null>(null);
+    const [currentSearchInput, setCurrentSearchInput] = useState<string>('');
 
     const queryClient = useQueryClient();
 
@@ -74,6 +76,20 @@ const EmploymentStatusListPage: React.FC = () => {
         deleteMutation.mutate(employmentStatusToDelete.id);
     };
 
+    const handleSearchInputChange = (event: ChangeEvent<HTMLInputElement>) => {
+        setCurrentSearchInput(event.target.value);
+    };
+
+    const filterEmploymentStatuses = (statuses: EmploymentStatusResponse[], searchTerm: string): EmploymentStatusResponse[] => {
+        const normalizedSearchTerm = searchTerm.toLowerCase().trim();
+        if (!normalizedSearchTerm) return statuses;
+        
+        return statuses.filter(status => 
+            status.statusName.toLowerCase().includes(normalizedSearchTerm) ||
+            status.id.toString().includes(normalizedSearchTerm)
+        );
+    };
+
     const renderTableContent = () => {
         if (isLoading) {
             return (
@@ -95,17 +111,19 @@ const EmploymentStatusListPage: React.FC = () => {
             );
         }
 
-        if (!employmentStatuses || employmentStatuses.length === 0) {
+        const filteredStatuses = filterEmploymentStatuses(employmentStatuses, currentSearchInput);
+
+        if (!filteredStatuses || filteredStatuses.length === 0) {
             return (
                 <TableRow>
                     <TableCell colSpan={3} className="h-24 text-center">
-                        No employment statuses found.
+                        {employmentStatuses.length === 0 ? 'No employment statuses found.' : 'No matching employment statuses found.'}
                     </TableCell>
                 </TableRow>
             );
         }
 
-        return employmentStatuses.map((employmentStatus) => (
+        return filteredStatuses.map((employmentStatus) => (
             <TableRow key={employmentStatus.id}>
                 <TableCell className="font-medium w-[100px]">{employmentStatus.id}</TableCell>
                 <TableCell>{employmentStatus.statusName}</TableCell>
@@ -140,6 +158,16 @@ const EmploymentStatusListPage: React.FC = () => {
                         <Link to="/employment-statuses/add">Add New Employment Status</Link>
                     </Button>
                 </CardHeader>
+                <CardContent>
+                    <div className="mb-4 flex flex-wrap gap-4">
+                        <Input
+                            placeholder="Search employment statuses..."
+                            value={currentSearchInput}
+                            onChange={handleSearchInputChange}
+                            className="max-w-xs flex-grow"
+                        />
+                    </div>
+                </CardContent>
                 <CardContent>
                     <Table>
                         <TableHeader>

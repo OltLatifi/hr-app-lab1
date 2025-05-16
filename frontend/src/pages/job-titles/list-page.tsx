@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, ChangeEvent } from 'react';
 
 import {
     useQuery,
@@ -31,10 +31,12 @@ import {
 } from "@/components/ui/card";
 import { Link } from 'react-router-dom';
 import { deleteJobTitle, getJobTitles, JobTitleResponse } from '@/services/jobtitleService';
+import { Input } from "@/components/ui/input";
 
 const JobTitleListPage: React.FC = () => {
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
     const [jobTitleToDelete, setJobTitleToDelete] = useState<JobTitleResponse | null>(null);
+    const [currentSearchInput, setCurrentSearchInput] = useState<string>('');
 
     const queryClient = useQueryClient();
 
@@ -74,6 +76,20 @@ const JobTitleListPage: React.FC = () => {
         deleteMutation.mutate(jobTitleToDelete.id);
     };
 
+    const handleSearchInputChange = (event: ChangeEvent<HTMLInputElement>) => {
+        setCurrentSearchInput(event.target.value);
+    };
+
+    const filterJobTitles = (jobTitles: JobTitleResponse[], searchTerm: string): JobTitleResponse[] => {
+        const normalizedSearchTerm = searchTerm.toLowerCase().trim();
+        if (!normalizedSearchTerm) return jobTitles;
+        
+        return jobTitles.filter(jobTitle => 
+            jobTitle.name.toLowerCase().includes(normalizedSearchTerm) ||
+            jobTitle.id.toString().includes(normalizedSearchTerm)
+        );
+    };
+
     const renderTableContent = () => {
         if (isLoading) {
             return (
@@ -95,17 +111,19 @@ const JobTitleListPage: React.FC = () => {
             );
         }
 
-        if (!jobTitles || jobTitles.length === 0) {
+        const filteredJobTitles = filterJobTitles(jobTitles, currentSearchInput);
+
+        if (!filteredJobTitles || filteredJobTitles.length === 0) {
             return (
                 <TableRow>
                     <TableCell colSpan={3} className="h-24 text-center">
-                        No job titles found.
+                        {jobTitles.length === 0 ? 'No job titles found.' : 'No matching job titles found.'}
                     </TableCell>
                 </TableRow>
             );
         }
 
-        return jobTitles.map((jobTitle) => (
+        return filteredJobTitles.map((jobTitle) => (
             <TableRow key={jobTitle.id}>
                 <TableCell className="font-medium w-[100px]">{jobTitle.id}</TableCell>
                 <TableCell>{jobTitle.name}</TableCell>
@@ -140,6 +158,16 @@ const JobTitleListPage: React.FC = () => {
                         <Link to="/jobtitles/add">Add New Job Title</Link>
                     </Button>
                 </CardHeader>
+                <CardContent>
+                    <div className="mb-4 flex flex-wrap gap-4">
+                        <Input
+                            placeholder="Search job titles..."
+                            value={currentSearchInput}
+                            onChange={handleSearchInputChange}
+                            className="max-w-xs flex-grow"
+                        />
+                    </div>
+                </CardContent>
                 <CardContent>
                     <Table>
                         <TableHeader>

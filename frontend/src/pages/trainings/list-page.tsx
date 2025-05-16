@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { ChangeEvent, useState } from 'react';
 
 import {
     useQuery,
@@ -31,11 +31,12 @@ import {
 } from "@/components/ui/card";
 import { Link } from 'react-router-dom';
 import { deleteTraining, getTrainings, TrainingResponse } from '@/services/trainingService';
+import { Input } from '@/components/ui/input';
 
 const TrainingListPage: React.FC = () => {
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
     const [trainingToDelete, setTrainingToDelete] = useState<TrainingResponse | null>(null);
-
+    const [currentSearchInput, setCurrentSearchInput] = useState<string>('');
     const queryClient = useQueryClient();
 
     const {
@@ -74,6 +75,20 @@ const TrainingListPage: React.FC = () => {
         deleteMutation.mutate(trainingToDelete.id);
     };
 
+    const handleSearchInputChange = (event: ChangeEvent<HTMLInputElement>) => {
+        setCurrentSearchInput(event.target.value);
+    };
+
+    const filterTrainings = (trainings: TrainingResponse[], searchTerm: string): TrainingResponse[] => {
+        const normalizedSearchTerm = searchTerm.toLowerCase().trim();
+        if (!normalizedSearchTerm) return trainings;
+        
+        return trainings.filter(training => 
+            training.name.toLowerCase().includes(normalizedSearchTerm) ||
+            training.id.toString().includes(normalizedSearchTerm)
+        );
+    };
+
     const renderTableContent = () => {
         if (isLoading) {
             return (
@@ -95,17 +110,19 @@ const TrainingListPage: React.FC = () => {
             );
         }
 
-        if (!trainings || trainings.length === 0) {
+        const filteredTrainings = filterTrainings(trainings, currentSearchInput);
+
+        if (!filteredTrainings || filteredTrainings.length === 0) {
             return (
                 <TableRow>
                     <TableCell colSpan={3} className="h-24 text-center">
-                        No trainings found.
+                        {trainings.length === 0 ? 'No trainings found.' : 'No matching trainings found.'}
                     </TableCell>
                 </TableRow>
             );
         }
 
-        return trainings.map((training) => (
+        return filteredTrainings.map((training) => (
             <TableRow key={training.id}>
                 <TableCell className="font-medium w-[100px]">{training.id}</TableCell>
                 <TableCell>{training.name}</TableCell>
@@ -140,6 +157,16 @@ const TrainingListPage: React.FC = () => {
                         <Link to="/trainings/add">Add New Training</Link>
                     </Button>
                 </CardHeader>
+                <CardContent>
+                    <div className="mb-4 flex flex-wrap gap-4">
+                        <Input
+                            placeholder="Search trainings..."
+                            value={currentSearchInput}
+                            onChange={handleSearchInputChange}
+                            className="max-w-xs flex-grow"
+                        />
+                    </div>
+                </CardContent>
                 <CardContent>
                     <Table>
                         <TableHeader>

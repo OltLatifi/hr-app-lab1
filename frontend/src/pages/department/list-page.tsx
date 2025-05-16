@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, ChangeEvent } from 'react';
 import {
     useQuery,
     useMutation,
@@ -38,11 +38,13 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
 import { getPayLimitByDepartmentId, PayLimitResponse } from '@/services/paylimitService';
 import { getPayrollsByDepartment } from '@/services/payrollService';
+import { Input } from "@/components/ui/input";
 
 const DepartmentListPage: React.FC = () => {
     const navigate = useNavigate();
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
     const [departmentToDelete, setDepartmentToDelete] = useState<DepartmentResponse | null>(null);
+    const [currentSearchInput, setCurrentSearchInput] = useState<string>('');
 
     const queryClient = useQueryClient();
 
@@ -103,6 +105,20 @@ const DepartmentListPage: React.FC = () => {
         navigate(`/paylimits/add/${departmentId}`);
     };
 
+    const handleSearchInputChange = (event: ChangeEvent<HTMLInputElement>) => {
+        setCurrentSearchInput(event.target.value);
+    };
+
+    const filterDepartments = (departments: DepartmentResponse[], searchTerm: string): DepartmentResponse[] => {
+        const normalizedSearchTerm = searchTerm.toLowerCase().trim();
+        if (!normalizedSearchTerm) return departments;
+        
+        return departments.filter(dept => 
+            dept.departmentName.toLowerCase().includes(normalizedSearchTerm) ||
+            dept.departmentId.toString().includes(normalizedSearchTerm)
+        );
+    };
+
     const renderTableContent = () => {
         if (isLoading) {
             return (
@@ -124,17 +140,19 @@ const DepartmentListPage: React.FC = () => {
             );
         }
 
-        if (!departments || departments.length === 0) {
+        const filteredDepartments = filterDepartments(departments, currentSearchInput);
+
+        if (!filteredDepartments || filteredDepartments.length === 0) {
             return (
                 <TableRow>
                     <TableCell colSpan={3} className="h-24 text-center">
-                        No departments found.
+                        {departments.length === 0 ? 'No departments found.' : 'No matching departments found.'}
                     </TableCell>
                 </TableRow>
             );
         }
 
-        return departments.map((dept) => {
+        return filteredDepartments.map((dept) => {
             const payLimit = payLimits.find((limit): limit is PayLimitResponse => 
                 limit !== null && limit.departmentId === dept.departmentId
             );
@@ -212,6 +230,16 @@ const DepartmentListPage: React.FC = () => {
                         <Link to="/departments/add">Add New Department</Link>
                     </Button>
                 </CardHeader>
+                <CardContent>
+                    <div className="mb-4 flex flex-wrap gap-4">
+                        <Input
+                            placeholder="Search departments..."
+                            value={currentSearchInput}
+                            onChange={handleSearchInputChange}
+                            className="max-w-xs flex-grow"
+                        />
+                    </div>
+                </CardContent>
                 <CardContent>
                     <Table>
                         <TableHeader>

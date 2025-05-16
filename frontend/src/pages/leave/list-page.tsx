@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, ChangeEvent } from 'react';
 
 import {
     useQuery,
@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/card";
 import { Link } from 'react-router-dom';
 import { deleteLeaveRequest, getleaves } from '@/services/leaverequestService';
+import { Input } from "@/components/ui/input";
 
 interface LeaveRequestResponse {
     id: number;
@@ -51,6 +52,7 @@ interface LeaveRequestResponse {
 const LeaveRequestListPage: React.FC = () => {
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
     const [leaveRequestToDelete, setLeaveRequestToDelete] = useState<LeaveRequestResponse | null>(null);
+    const [currentSearchInput, setCurrentSearchInput] = useState<string>('');
 
     const queryClient = useQueryClient();
 
@@ -103,6 +105,23 @@ const LeaveRequestListPage: React.FC = () => {
         }
     };
 
+    const handleSearchInputChange = (event: ChangeEvent<HTMLInputElement>) => {
+        setCurrentSearchInput(event.target.value);
+    };
+
+    const filterLeaveRequests = (leaveRequests: LeaveRequestResponse[], searchTerm: string): LeaveRequestResponse[] => {
+        const normalizedSearchTerm = searchTerm.toLowerCase().trim();
+        if (!normalizedSearchTerm) return leaveRequests;
+        
+        return leaveRequests.filter(leave => 
+            leave.employee.firstName.toLowerCase().includes(normalizedSearchTerm) ||
+            leave.employee.lastName.toLowerCase().includes(normalizedSearchTerm) ||
+            leave.leaveType.typeName.toLowerCase().includes(normalizedSearchTerm) ||
+            leave.status.toLowerCase().includes(normalizedSearchTerm) ||
+            leave.id.toString().includes(normalizedSearchTerm)
+        );
+    };
+
     const renderTableContent = () => {
         if (isLoading) {
             return (
@@ -124,17 +143,19 @@ const LeaveRequestListPage: React.FC = () => {
             );
         }
 
-        if (!leaves || leaves.length === 0) {
+        const filteredLeaves = filterLeaveRequests(leaves, currentSearchInput);
+
+        if (!filteredLeaves || filteredLeaves.length === 0) {
             return (
                 <TableRow>
                     <TableCell colSpan={7} className="h-24 text-center">
-                        No leave requests found.
+                        {leaves.length === 0 ? 'No leave requests found.' : 'No matching leave requests found.'}
                     </TableCell>
                 </TableRow>
             );
         }
 
-        return leaves.map((leaveRequest) => (
+        return filteredLeaves.map((leaveRequest) => (
             <TableRow key={leaveRequest.id}>
                 <TableCell className="font-medium w-[100px]">{leaveRequest.id}</TableCell>
                 <TableCell>{leaveRequest.employee?.firstName} {leaveRequest.employee?.lastName}</TableCell>
@@ -177,6 +198,16 @@ const LeaveRequestListPage: React.FC = () => {
                         <Link to="/leaves/add">Add New Leave Request</Link>
                     </Button>
                 </CardHeader>
+                <CardContent>
+                    <div className="mb-4 flex flex-wrap gap-4">
+                        <Input
+                            placeholder="Search leave requests..."
+                            value={currentSearchInput}
+                            onChange={handleSearchInputChange}
+                            className="max-w-xs flex-grow"
+                        />
+                    </div>
+                </CardContent>
                 <CardContent>
                     <Table>
                         <TableHeader>

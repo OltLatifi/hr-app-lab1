@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, ChangeEvent } from 'react';
 
 import {
     useQuery,
@@ -31,10 +31,12 @@ import {
 } from "@/components/ui/card";
 import { Link } from 'react-router-dom';
 import { deleteLeaveType, getLeaveTypes, LeaveTypeResponse } from '@/services/leavetypeService';
+import { Input } from "@/components/ui/input";
 
 const LeaveTypeListPage: React.FC = () => {
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
     const [leaveTypeToDelete, setLeaveTypeToDelete] = useState<LeaveTypeResponse | null>(null);
+    const [currentSearchInput, setCurrentSearchInput] = useState<string>('');
 
     const queryClient = useQueryClient();
 
@@ -74,6 +76,20 @@ const LeaveTypeListPage: React.FC = () => {
         deleteMutation.mutate(leaveTypeToDelete.id);
     };
 
+    const handleSearchInputChange = (event: ChangeEvent<HTMLInputElement>) => {
+        setCurrentSearchInput(event.target.value);
+    };
+
+    const filterLeaveTypes = (leaveTypes: LeaveTypeResponse[], searchTerm: string): LeaveTypeResponse[] => {
+        const normalizedSearchTerm = searchTerm.toLowerCase().trim();
+        if (!normalizedSearchTerm) return leaveTypes;
+        
+        return leaveTypes.filter(leaveType => 
+            leaveType.typeName.toLowerCase().includes(normalizedSearchTerm) ||
+            leaveType.id.toString().includes(normalizedSearchTerm)
+        );
+    };
+
     const renderTableContent = () => {
         if (isLoading) {
             return (
@@ -95,17 +111,19 @@ const LeaveTypeListPage: React.FC = () => {
             );
         }
 
-        if (!leaveTypes || leaveTypes.length === 0) {
+        const filteredLeaveTypes = filterLeaveTypes(leaveTypes, currentSearchInput);
+
+        if (!filteredLeaveTypes || filteredLeaveTypes.length === 0) {
             return (
                 <TableRow>
                     <TableCell colSpan={3} className="h-24 text-center">
-                        No leave types found.
+                        {leaveTypes.length === 0 ? 'No leave types found.' : 'No matching leave types found.'}
                     </TableCell>
                 </TableRow>
             );
         }
 
-        return leaveTypes.map((leaveType) => (
+        return filteredLeaveTypes.map((leaveType) => (
             <TableRow key={leaveType.id}>
                 <TableCell className="font-medium w-[100px]">{leaveType.id}</TableCell>
                 <TableCell>{leaveType.typeName}</TableCell>
@@ -140,6 +158,16 @@ const LeaveTypeListPage: React.FC = () => {
                         <Link to="/leave-types/add">Add New Leave Type</Link>
                     </Button>
                 </CardHeader>
+                <CardContent>
+                    <div className="mb-4 flex flex-wrap gap-4">
+                        <Input
+                            placeholder="Search leave types..."
+                            value={currentSearchInput}
+                            onChange={handleSearchInputChange}
+                            className="max-w-xs flex-grow"
+                        />
+                    </div>
+                </CardContent>
                 <CardContent>
                     <Table>
                         <TableHeader>

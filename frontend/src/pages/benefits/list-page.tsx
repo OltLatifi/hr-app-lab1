@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, ChangeEvent } from 'react';
 
 import {
     useQuery,
@@ -31,10 +31,12 @@ import {
 } from "@/components/ui/card";
 import { Link } from 'react-router-dom';
 import { deleteBenefit, getBenefits, BenefitResponse } from '@/services/benefitService';
+import { Input } from "@/components/ui/input";
 
 const BenefitListPage: React.FC = () => {
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
     const [benefitToDelete, setBenefitToDelete] = useState<BenefitResponse | null>(null);
+    const [currentSearchInput, setCurrentSearchInput] = useState<string>('');
 
     const queryClient = useQueryClient();
 
@@ -74,6 +76,20 @@ const BenefitListPage: React.FC = () => {
         deleteMutation.mutate(benefitToDelete.id);
     };
 
+    const handleSearchInputChange = (event: ChangeEvent<HTMLInputElement>) => {
+        setCurrentSearchInput(event.target.value);
+    };
+
+    const filterBenefits = (benefits: BenefitResponse[], searchTerm: string): BenefitResponse[] => {
+        const normalizedSearchTerm = searchTerm.toLowerCase().trim();
+        if (!normalizedSearchTerm) return benefits;
+        
+        return benefits.filter(benefit => 
+            benefit.name.toLowerCase().includes(normalizedSearchTerm) ||
+            benefit.id.toString().includes(normalizedSearchTerm)
+        );
+    };
+
     const renderTableContent = () => {
         if (isLoading) {
             return (
@@ -95,17 +111,19 @@ const BenefitListPage: React.FC = () => {
             );
         }
 
-        if (!benefits || benefits.length === 0) {
+        const filteredBenefits = filterBenefits(benefits, currentSearchInput);
+
+        if (!filteredBenefits || filteredBenefits.length === 0) {
             return (
                 <TableRow>
                     <TableCell colSpan={3} className="h-24 text-center">
-                        No benefits found.
+                        {benefits.length === 0 ? 'No benefits found.' : 'No matching benefits found.'}
                     </TableCell>
                 </TableRow>
             );
         }
 
-        return benefits.map((benefit) => (
+        return filteredBenefits.map((benefit) => (
             <TableRow key={benefit.id}>
                 <TableCell className="font-medium w-[100px]">{benefit.id}</TableCell>
                 <TableCell>{benefit.name}</TableCell>
@@ -140,6 +158,16 @@ const BenefitListPage: React.FC = () => {
                         <Link to="/benefits/add">Add New Benefit</Link>
                     </Button>
                 </CardHeader>
+                <CardContent>
+                    <div className="mb-4 flex flex-wrap gap-4">
+                        <Input
+                            placeholder="Search benefits..."
+                            value={currentSearchInput}
+                            onChange={handleSearchInputChange}
+                            className="max-w-xs flex-grow"
+                        />
+                    </div>
+                </CardContent>
                 <CardContent>
                     <Table>
                         <TableHeader>
