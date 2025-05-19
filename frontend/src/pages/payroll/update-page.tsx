@@ -90,7 +90,7 @@ const PayrollUpdatePage: React.FC = () => {
     const form = useForm<PayrollFormValues>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            employeeId: undefined,
+            employeeId: 0,
             payPeriodStartDate: '',
             payPeriodEndDate: '',
             netPay: 0,
@@ -117,6 +117,7 @@ const PayrollUpdatePage: React.FC = () => {
         mutationFn: (data: PayrollFormValues) => {
             const payload = {
                 ...data,
+                employeeId: Number(data.employeeId),
                 grossPay: Math.round(data.grossPay * 100),
                 netPay: Math.round(data.netPay * 100),
             };
@@ -182,7 +183,12 @@ const PayrollUpdatePage: React.FC = () => {
                                 <FormItem>
                                     <FormLabel>Employee</FormLabel>
                                     <Select 
-                                        onValueChange={(value) => field.onChange(parseInt(value, 10))}
+                                        onValueChange={(value) => {
+                                            const parsedValue = parseInt(value, 10);
+                                            if (!isNaN(parsedValue)) {
+                                                field.onChange(parsedValue);
+                                            }
+                                        }}
                                         defaultValue={field.value?.toString()}
                                         value={field.value?.toString()}
                                         disabled={isLoading}
