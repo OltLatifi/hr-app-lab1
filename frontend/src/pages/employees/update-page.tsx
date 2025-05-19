@@ -316,7 +316,12 @@ const EmployeeUpdatePage: React.FC = () => {
                                     <FormItem>
                                         <FormLabel>Job Title</FormLabel>
                                         <Select
-                                            onValueChange={(value) => field.onChange(value)}
+                                            onValueChange={(value) => {
+                                                const parsedValue = parseInt(value, 10);
+                                                if (!isNaN(parsedValue)) {
+                                                    field.onChange(parsedValue);
+                                                }
+                                            }}
                                             defaultValue={field.value?.toString()}
                                             value={field.value?.toString()}
                                             disabled={isLoading}
@@ -349,7 +354,12 @@ const EmployeeUpdatePage: React.FC = () => {
                                 <FormItem>
                                     <FormLabel>Department</FormLabel>
                                     <Select
-                                        onValueChange={(value) => field.onChange(value)}
+                                        onValueChange={(value) => {
+                                            const parsedValue = parseInt(value, 10);
+                                            if (!isNaN(parsedValue)) {
+                                                field.onChange(parsedValue);
+                                            }
+                                        }}
                                         defaultValue={field.value?.toString()}
                                         value={field.value?.toString()}
                                         disabled={isLoading}
@@ -383,7 +393,12 @@ const EmployeeUpdatePage: React.FC = () => {
                                 <FormItem>
                                     <FormLabel>Manager</FormLabel>
                                     <Select
-                                        onValueChange={(value) => field.onChange(value)}
+                                        onValueChange={(value) => {
+                                            const parsedValue = parseInt(value, 10);
+                                            if (!isNaN(parsedValue)) {
+                                                field.onChange(parsedValue);
+                                            }
+                                        }}
                                         defaultValue={field.value?.toString()}
                                         value={field.value?.toString()}
                                         disabled={isLoading}
@@ -415,7 +430,12 @@ const EmployeeUpdatePage: React.FC = () => {
                                 <FormItem>
                                     <FormLabel>Employment Status</FormLabel>
                                     <Select
-                                        onValueChange={(value) => field.onChange(value)}
+                                        onValueChange={(value) => {
+                                            const parsedValue = parseInt(value, 10);
+                                            if (!isNaN(parsedValue)) {
+                                                field.onChange(parsedValue);
+                                            }
+                                        }}
                                         defaultValue={field.value?.toString()}
                                         value={field.value?.toString()}
                                         disabled={isLoading}
