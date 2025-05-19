@@ -328,23 +328,20 @@ export const employeeBenefits = pgTable(
   }
 );
 
-export const employeeBenefitsRelations = relations(
-  employeeBenefits,
-  ({ one }) => ({
-    employee: one(employees, {
-      fields: [employeeBenefits.employeeId],
-      references: [employees.id],
-    }),
-    benefit: one(benefits, {
-      fields: [employeeBenefits.benefitId],
-      references: [benefits.id],
-    }),
-    company: one(company, {
-      fields: [employeeBenefits.companyId],
-      references: [company.id],
-    }),
+export const employeeBenefitsRelations = relations(employeeBenefits, ({ one }) => ({
+  employee: one(employees, {
+    fields: [employeeBenefits.employeeId],
+    references: [employees.id],
   }),
-);
+  benefit: one(benefits, {
+    fields: [employeeBenefits.benefitId],
+    references: [benefits.id],
+  }),
+  company: one(company, {
+    fields: [employeeBenefits.companyId],
+    references: [company.id],
+  }),
+}));
 
 // PerformanceReviews
 export const performanceReviews = pgTable('performancereview', {

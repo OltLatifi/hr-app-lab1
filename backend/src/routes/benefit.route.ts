@@ -13,5 +13,8 @@ router.get('/', benefitController.findAll);
 router.get('/:id', benefitController.findOne);
 router.put('/:id', validateRequest(updateBenefitSchema), benefitController.update);
 router.delete('/:id', benefitController.remove);
+router.get('/employee/:employeeId', benefitController.getEmployeeBenefits);
+router.post('/assign', benefitController.assignBenefit);
+router.post('/remove', benefitController.removeBenefit);
 
 export default router;

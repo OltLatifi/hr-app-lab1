@@ -11,6 +11,22 @@ export interface BenefitResponse {
     updatedAt: string;
 }
 
+export interface EmployeeBenefitResponse {
+    id: number;
+    employeeId: number;
+    benefitId: number;
+    enrollmentDate: string;
+    createdAt: string;
+    updatedAt: string;
+    benefit: BenefitResponse;
+}
+
+export interface AssignBenefitPayload {
+    employeeId: number;
+    benefitId: number;
+    enrollmentDate: string;
+}
+
 export const createBenefit = async (benefitData: CreateBenefitPayload): Promise<BenefitResponse> => {
     try {
         const response = await apiClient.post<BenefitResponse>('/benefits', benefitData);
@@ -38,7 +54,17 @@ export const getBenefits = async (): Promise<BenefitResponse[]> => {
         console.error('API Error Fetching Benefits:', error);
         throw error;
     }
-}; 
+};
+
+export const getEmployeeBenefits = async (employeeId: number): Promise<EmployeeBenefitResponse[]> => {
+    try {
+        const response = await apiClient.get<EmployeeBenefitResponse[]>(`/benefits/employee/${employeeId}`);
+        return response.data;
+    } catch (error) {
+        console.error('API Error Fetching Employee Benefits:', error);
+        throw error;
+    }
+};
 
 export const getBenefitById = async (benefitId: number): Promise<BenefitResponse> => {
     try {
@@ -56,6 +82,25 @@ export const updateBenefit = async (benefitId: number, benefitData: CreateBenefi
         return response.data;
     } catch (error) {
         console.error('API Error Updating Benefit:', error);
+        throw error;
+    }
+};
+
+export const assignBenefit = async (data: AssignBenefitPayload): Promise<EmployeeBenefitResponse> => {
+    try {
+        const response = await apiClient.post<EmployeeBenefitResponse>('/benefits/assign', data);
+        return response.data;
+    } catch (error) {
+        console.error('API Error Assigning Benefit:', error);
+        throw error;
+    }
+};
+
+export const removeBenefit = async (employeeId: number, benefitId: number): Promise<void> => {
+    try {
+        await apiClient.post('/benefits/remove', { employeeId, benefitId });
+    } catch (error) {
+        console.error('API Error Removing Benefit:', error);
         throw error;
     }
 };

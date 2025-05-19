@@ -91,7 +91,17 @@ export const getAllEmployees = async (companyId: number, filters?: EmployeeQuery
             jobTitle: { columns: { id: true, name: true } },
             department: { columns: { departmentId: true, departmentName: true } },
             manager: { columns: { id: true, firstName: true, lastName: true } },
-            employmentStatus: { columns: { id: true, statusName: true } }
+            employmentStatus: { columns: { id: true, statusName: true } },
+            employeeBenefits: {
+                with: {
+                    benefit: { columns: { id: true, name: true } }
+                }
+            },
+            employeeTraining: {
+                with: {
+                    trainingProgram: { columns: { id: true, name: true } }
+                }
+            }
         },
     };
 

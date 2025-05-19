@@ -41,6 +41,9 @@ import {
 import { deleteEmployee, getEmployees, EmployeeResponse, EmployeeFilters } from '@/services/employeeService';
 import { getDepartments, DepartmentResponse } from '@/services/departmentService';
 import { getEmploymentStatuses, EmploymentStatusResponse } from '@/services/employmentstatusService';
+import { getBenefits, assignBenefit, removeBenefit, BenefitResponse } from '@/services/benefitService';
+import { getTrainings, assignTraining, removeTraining, TrainingResponse, AssignTrainingPayload } from '@/services/trainingService';
+import { PlusIcon } from "lucide-react";
 
 const NO_SELECTION_SENTINEL = "__NO_SELECTION__";
 
@@ -48,10 +51,18 @@ const DEBOUNCE_DELAY = 500;
 
 const EmployeeListPage: React.FC = () => {
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+    const [isBenefitModalOpen, setIsBenefitModalOpen] = useState<boolean>(false);
+    const [isTrainingModalOpen, setIsTrainingModalOpen] = useState<boolean>(false);
     const [employeeToDelete, setEmployeeToDelete] = useState<EmployeeResponse | null>(null);
+    const [selectedEmployee, setSelectedEmployee] = useState<EmployeeResponse | null>(null);
+    const [selectedBenefit, setSelectedBenefit] = useState<string>('');
+    const [selectedTraining, setSelectedTraining] = useState<string>('');
+    const [enrollmentDate, setEnrollmentDate] = useState<string>('');
     const [filters, setFilters] = useState<EmployeeFilters>({});
     const [currentSearchInput, setCurrentSearchInput] = useState<string>('');
     const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+    const [isRemovingBenefit, setIsRemovingBenefit] = useState<boolean>(false);
+    const [isRemovingTraining, setIsRemovingTraining] = useState<boolean>(false);
 
     const queryClient = useQueryClient();
 
@@ -123,6 +134,16 @@ const EmployeeListPage: React.FC = () => {
         queryFn: getEmploymentStatuses,
     });
 
+    const { data: benefits = [] } = useQuery<BenefitResponse[], Error>({
+        queryKey: ['benefits'],
+        queryFn: getBenefits,
+    });
+
+    const { data: trainings = [] } = useQuery<TrainingResponse[], Error>({
+        queryKey: ['trainings'],
+        queryFn: getTrainings,
+    });
+
     const deleteMutation = useMutation({
         mutationFn: deleteEmployee,
         onSuccess: () => {
@@ -131,6 +152,56 @@ const EmployeeListPage: React.FC = () => {
         },
         onError: (err: Error) => {
             console.error("Failed to delete department:", err);
+        },
+    });
+
+    console.log('employees -->', employees);
+
+    const assignBenefitMutation = useMutation({
+        mutationFn: assignBenefit,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['employees'] });
+            closeBenefitModal();
+        },
+        onError: (err: Error) => {
+            console.error("Failed to assign benefit:", err);
+        },
+    });
+
+    const removeBenefitMutation = useMutation({
+        mutationFn: ({ employeeId, benefitId }: { employeeId: number; benefitId: number }) => 
+            removeBenefit(employeeId, benefitId),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['employees'] });
+            setIsRemovingBenefit(false);
+        },
+        onError: (err: Error) => {
+            console.error("Failed to remove benefit:", err);
+            setIsRemovingBenefit(false);
+        },
+    });
+
+    const assignTrainingMutation = useMutation({
+        mutationFn: (data: AssignTrainingPayload) => assignTraining(data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['employees'] });
+            closeTrainingModal();
+        },
+        onError: (err: Error) => {
+            console.error("Failed to assign training:", err);
+        },
+    });
+
+    const removeTrainingMutation = useMutation({
+        mutationFn: ({ employeeId, trainingId }: { employeeId: number; trainingId: number }) => 
+            removeTraining(employeeId, trainingId),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['employees'] });
+            setIsRemovingTraining(false);
+        },
+        onError: (err: Error) => {
+            console.error("Failed to remove training:", err);
+            setIsRemovingTraining(false);
         },
     });
 
@@ -149,11 +220,73 @@ const EmployeeListPage: React.FC = () => {
         deleteMutation.mutate(employeeToDelete.id);
     };
 
+    const openBenefitModal = (employee: EmployeeResponse) => {
+        setSelectedEmployee(employee);
+        setIsBenefitModalOpen(true);
+    };
+
+    const closeBenefitModal = () => {
+        setSelectedEmployee(null);
+        setSelectedBenefit('');
+        setEnrollmentDate('');
+        setIsBenefitModalOpen(false);
+    };
+
+    const handleAssignBenefit = () => {
+        if (!selectedEmployee || !selectedBenefit || !enrollmentDate) return;
+
+        assignBenefitMutation.mutate({
+            employeeId: selectedEmployee.id,
+            benefitId: parseInt(selectedBenefit, 10),
+            enrollmentDate,
+        });
+    };
+
+    const handleRemoveBenefit = (employeeId: number, benefitId: number) => {
+        setIsRemovingBenefit(true);
+        removeBenefitMutation.mutate({ employeeId, benefitId });
+    };
+
+    const getAvailableBenefits = (employee: EmployeeResponse) => {
+        const assignedBenefitIds = new Set(employee.employeeBenefits?.map(eb => eb.benefit.id) || []);
+        return benefits.filter(benefit => !assignedBenefitIds.has(benefit.id));
+    };
+
+    const openTrainingModal = (employee: EmployeeResponse) => {
+        setSelectedEmployee(employee);
+        setIsTrainingModalOpen(true);
+    };
+
+    const closeTrainingModal = () => {
+        setSelectedEmployee(null);
+        setSelectedTraining('');
+        setIsTrainingModalOpen(false);
+    };
+
+    const handleAssignTraining = () => {
+        if (!selectedEmployee || !selectedTraining) return;
+
+        assignTrainingMutation.mutate({
+            employeeId: selectedEmployee.id,
+            trainingId: parseInt(selectedTraining, 10),
+        });
+    };
+
+    const handleRemoveTraining = (employeeId: number, trainingId: number) => {
+        setIsRemovingTraining(true);
+        removeTrainingMutation.mutate({ employeeId, trainingId });
+    };
+
+    const getAvailableTrainings = (employee: EmployeeResponse) => {
+        const assignedTrainingIds = new Set(employee.employeeTraining?.map(et => et.trainingProgram.id) || []);
+        return trainings.filter(training => !assignedTrainingIds.has(training.id));
+    };
+
     const renderTableContent = () => {
         if (isLoadingEmployees) {
             return (
                 <TableRow>
-                    <TableCell colSpan={3} className="h-24 text-center">
+                    <TableCell colSpan={8} className="h-24 text-center">
                         Loading employees...
                     </TableCell>
                 </TableRow>
@@ -163,7 +296,7 @@ const EmployeeListPage: React.FC = () => {
         if (isErrorEmployees) {
             return (
                 <TableRow>
-                    <TableCell colSpan={7} className="h-24 text-center text-destructive">
+                    <TableCell colSpan={8} className="h-24 text-center text-destructive">
                         Error loading employees: {errorEmployees?.message || 'Unknown error'}
                     </TableCell>
                 </TableRow>
@@ -173,7 +306,7 @@ const EmployeeListPage: React.FC = () => {
         if (!employees || employees.length === 0) {
             return (
                 <TableRow>
-                    <TableCell colSpan={7} className="h-24 text-center">
+                    <TableCell colSpan={8} className="h-24 text-center">
                         No employees found.
                     </TableCell>
                 </TableRow>
@@ -188,7 +321,61 @@ const EmployeeListPage: React.FC = () => {
                 <TableCell>{employee.department.departmentName}</TableCell>
                 <TableCell>{employee.jobTitle.name}</TableCell>
                 <TableCell>{employee.employmentStatus.statusName}</TableCell>
-                <TableCell className="text-right space-x-2">
+                <TableCell>
+                    {employee.employeeBenefits?.length ? 
+                        <div className="flex flex-col gap-1">
+                            {employee.employeeBenefits.map(eb => (
+                                <div key={eb.id} className="flex items-center gap-1 bg-secondary px-2 py-1 rounded-md">
+                                    <span className="text-sm">{eb.benefit.name}</span>
+                                    <button
+                                        className="text-muted-foreground hover:text-destructive transition-colors ml-auto"
+                                        onClick={() => handleRemoveBenefit(employee.id, eb.benefit.id)}
+                                        disabled={isRemovingBenefit}
+                                    >
+                                        ×
+                                    </button>
+                                </div>
+                            ))}
+                        </div> : 
+                        <span className="text-muted-foreground">No benefits assigned</span>
+                    }
+                </TableCell>
+                <TableCell>
+                    {employee.employeeTraining?.length ? 
+                        <div className="flex flex-col gap-1">
+                            {employee.employeeTraining.map(et => (
+                                <div key={et.employeeTrainingId} className="flex items-center gap-1 bg-secondary px-2 py-1 rounded-md">
+                                    <span className="text-sm">{et.trainingProgram.name}</span>
+                                    <button
+                                        className="text-muted-foreground hover:text-destructive transition-colors ml-auto"
+                                        onClick={() => handleRemoveTraining(employee.id, et.trainingProgram.id)}
+                                        disabled={isRemovingTraining}
+                                    >
+                                        ×
+                                    </button>
+                                </div>
+                            ))}
+                        </div> : 
+                        <span className="text-muted-foreground">No trainings assigned</span>
+                    }
+                </TableCell>
+                <TableCell className="text-right space-x-2 flex flex-row items-center">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => openBenefitModal(employee)}
+                    >
+                        <PlusIcon className="w-4 h-4" />
+                        Benefit
+                    </Button>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => openTrainingModal(employee)}
+                    >
+                        <PlusIcon className="w-4 h-4" />
+                        Training
+                    </Button>
                     <Button asChild variant="outline" size="sm">
                         <Link to={`/employees/edit/${employee.id}`}>Edit</Link>
                     </Button>
@@ -276,6 +463,8 @@ const EmployeeListPage: React.FC = () => {
                                 <TableHead>Department</TableHead>
                                 <TableHead>Job Title</TableHead>
                                 <TableHead>Status</TableHead>
+                                <TableHead>Benefits</TableHead>
+                                <TableHead>Trainings</TableHead>
                                 <TableHead className="text-right">Actions</TableHead>
                             </TableRow>
                         </TableHeader>
@@ -305,6 +494,92 @@ const EmployeeListPage: React.FC = () => {
                             disabled={deleteMutation.isPending}
                         >
                             {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog open={isBenefitModalOpen} onOpenChange={setIsBenefitModalOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Assign Benefit</DialogTitle>
+                        <DialogDescription>
+                            Assign a benefit to {selectedEmployee?.firstName} {selectedEmployee?.lastName}
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="grid gap-4 py-4">
+                        <div className="grid gap-2">
+                            <label htmlFor="benefit">Benefit</label>
+                            <Select value={selectedBenefit} onValueChange={setSelectedBenefit}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select a benefit" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {selectedEmployee && getAvailableBenefits(selectedEmployee).map((benefit) => (
+                                        <SelectItem key={benefit.id} value={String(benefit.id)}>
+                                            {benefit.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="grid gap-2">
+                            <label htmlFor="enrollmentDate">Enrollment Date</label>
+                            <Input
+                                type="date"
+                                value={enrollmentDate}
+                                onChange={(e) => setEnrollmentDate(e.target.value)}
+                            />
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={closeBenefitModal} disabled={assignBenefitMutation.isPending}>
+                            Cancel
+                        </Button>
+                        <Button
+                            onClick={handleAssignBenefit}
+                            disabled={!selectedBenefit || !enrollmentDate || assignBenefitMutation.isPending}
+                        >
+                            {assignBenefitMutation.isPending ? 'Assigning...' : 'Assign Benefit'}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog open={isTrainingModalOpen} onOpenChange={setIsTrainingModalOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Assign Training</DialogTitle>
+                        <DialogDescription>
+                            Assign a training to {selectedEmployee?.firstName} {selectedEmployee?.lastName}
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="grid gap-4 py-4">
+                        <div className="grid gap-2">
+                            <label htmlFor="training">Training</label>
+                            <Select value={selectedTraining} onValueChange={setSelectedTraining}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select a training" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {selectedEmployee && getAvailableTrainings(selectedEmployee).map((training) => (
+                                        <SelectItem key={training.id} value={String(training.id)}>
+                                            {training.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={closeTrainingModal} disabled={assignTrainingMutation.isPending}>
+                            Cancel
+                        </Button>
+                        <Button
+                            onClick={handleAssignTraining}
+                            disabled={!selectedTraining || assignTrainingMutation.isPending}
+                        >
+                            {assignTrainingMutation.isPending ? 'Assigning...' : 'Assign Training'}
                         </Button>
                     </DialogFooter>
                 </DialogContent>

@@ -6,4 +6,12 @@ export const createTrainingProgramSchema = createInsertSchema(trainingPrograms).
 export const updateTrainingProgramSchema = createTrainingProgramSchema.partial();
 
 export type CreateTrainingProgramInput = z.infer<typeof createTrainingProgramSchema>;
-export type UpdateTrainingProgramInput = z.infer<typeof updateTrainingProgramSchema>; 
+export type UpdateTrainingProgramInput = z.infer<typeof updateTrainingProgramSchema>;
+
+export const createTrainingSchema = z.object({
+    name: z.string().min(1, 'Training name is required'),
+});
+
+export const updateTrainingSchema = z.object({
+    name: z.string().min(1, 'Training name is required'),
+}); 

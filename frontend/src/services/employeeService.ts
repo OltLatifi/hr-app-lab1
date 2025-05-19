@@ -43,6 +43,21 @@ export interface EmployeeResponse {
         id: number;
         statusName: string;
     };
+    employeeBenefits: Array<{
+        id: number;
+        benefit: {
+            id: number;
+            name: string;
+        };
+        enrollmentDate: string;
+    }>;
+    employeeTraining: Array<{
+        employeeTrainingId: number;
+        trainingProgram: {
+            id: number;
+            name: string;
+        };
+    }>;
 }
 
 export const createEmployee = async (employeeData: CreateEmployeePayload): Promise<EmployeeResponse> => {
