@@ -12,7 +12,7 @@
         "express",
         "routing"
     ],
-    "author": "Saman Arif",
+    "author": "Olt Latifi",
     "license": "MIT",
     "devDependencies": {
         "@types/express": "^4.17.21",
