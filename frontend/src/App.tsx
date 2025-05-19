@@ -23,6 +23,7 @@ import EmployeeListPage from './pages/employees/list-page';
 import EmployeeAddPage from './pages/employees/create-page';
 import EmployeeUpdatePage from './pages/employees/update-page';
 import AdminPage from './pages/admin/admin-page';
+import AdminDashboard from './pages/admin/admin-dashboard';
 
 import TrainingListPage from './pages/trainings/list-page';
 import TrainingAddPage from './pages/trainings/create-page';
@@ -117,6 +118,7 @@ function AppContent() {
 
           <Route element={<ProtectedRoute requiredRole="Admin" />}>
             <Route path="/admin" element={<AdminPage />} />
+            <Route path="/admin/dashboard" element={<AdminDashboard />} />
           </Route>
 
           {/* Fallback Route */}

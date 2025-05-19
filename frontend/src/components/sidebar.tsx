@@ -17,13 +17,22 @@ const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onCloseMobile }) => {
     const [isSettingsNavOpen, setIsSettingsNavOpen] = React.useState(false);
 
     const renderAdminLink = () => (
-        <Link 
-            to="/admin" 
-            className="block py-2 px-2 hover:bg-gray-700 rounded transition-colors duration-150"
-            onClick={onCloseMobile}
-        >
-            Admin
-        </Link>
+        <>
+            <Link 
+                to="/admin" 
+                className="block py-2 px-2 hover:bg-gray-700 rounded transition-colors duration-150"
+                onClick={onCloseMobile}
+            >
+                System Administration
+            </Link>
+            <Link 
+                to="/admin/dashboard" 
+                className="block py-2 px-2 hover:bg-gray-700 rounded transition-colors duration-150"
+                onClick={onCloseMobile}
+            >
+                Admin Dashboard
+            </Link>
+        </>
     );
 
     const renderEmployeeLink = () => (

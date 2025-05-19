@@ -22,6 +22,7 @@ import payLimitRouter from './routes/paylimit.route';
 import leaveRouter from './routes/leave.route';
 import subscriptionRouter from './routes/subscription.routes';
 import webhookRoutes from './routes/webhook.routes';
+import statisticsRouter from './routes/statistics.routes';
 
 export const application = express();
 export let httpServer: ReturnType<typeof http.createServer>;
@@ -54,6 +55,7 @@ export const Main = () => {
     application.use('/paylimits', payLimitRouter);
     application.use('/leaverequests', leaveRouter);
     application.use('/subscriptions', subscriptionRouter);
+    application.use('/statistics', statisticsRouter);
     application.use(routeNotFound);
 
     httpServer = http.createServer(application);
