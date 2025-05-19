@@ -109,11 +109,6 @@ export const update = async (req: Request, res: Response): Promise<Response> => 
         if (isNaN(id)) {
             return res.status(400).json({ message: 'Invalid employee ID' });
         }
-
-        const employeeExists = await employeeService.findEmployeeByEmail(req.body.email);
-        if(employeeExists){
-            return res.status(400).json({ message: 'Employee already exists' });
-        }
         const employee = await employeeService.updateEmployee(id, companyId, req.body);
         if (!employee) {
             return res.status(404).json({ message: 'Employee not found' });

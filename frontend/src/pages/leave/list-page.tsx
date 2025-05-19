@@ -163,7 +163,7 @@ const LeaveRequestListPage: React.FC = () => {
                 <TableCell>{new Date(leaveRequest.startDate).toLocaleDateString()}</TableCell>
                 <TableCell>{new Date(leaveRequest.endDate).toLocaleDateString()}</TableCell>
                 <TableCell className={getStatusColor(leaveRequest.status)}>
-                    {leaveRequest.status}
+                    <p className='capitalize'>{leaveRequest.status}</p>
                 </TableCell>
                 <TableCell className="text-right space-x-2">
                     {leaveRequest.status.toLowerCase() === 'pending' && (

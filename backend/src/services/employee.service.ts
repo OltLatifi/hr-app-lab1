@@ -164,7 +164,6 @@ export const allowedToAddEmployee = async (companyId: number, numberOfEmployees:
         return false;
     }
 
-    console.log(companyData.subscriptionStatus);
     if(companyData.subscriptionStatus === 'active'){
         return true;
     }
