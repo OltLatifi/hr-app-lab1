@@ -118,8 +118,6 @@ export const cancelSubscriptionController = async (req: Request, res: Response):
     try {
         const { subscriptionId } = req.body;
 
-        console.log('subscriptionId -->', subscriptionId);
-
         if (!subscriptionId) {
             return res.status(400).json({ error: 'No subscriptionId provided' });
         }
@@ -127,8 +125,6 @@ export const cancelSubscriptionController = async (req: Request, res: Response):
         const companyData = await db.query.company.findFirst({
             where: eq(company.stripeSubscriptionId, subscriptionId),
         });
-
-        console.log('companyData -->', companyData);
 
         if (!companyData) {
             return res.status(400).json({ error: 'No active subscription found' });

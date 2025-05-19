@@ -2,6 +2,7 @@ import { stripe } from '../config/stripe';
 import db from '../db';
 import { company, employees, users } from '../db/schema';
 import { eq } from 'drizzle-orm';
+import { cancelSubscription } from './stripe.service';
 
 type CreatedCompany = typeof company.$inferSelect;
 
@@ -104,6 +105,12 @@ export const deleteCompany = async (companyId: number) => {
         if (deletedCompany[0]?.adminId) {
             await db.delete(users)
                 .where(eq(users.id, deletedCompany[0].adminId));
+        }
+
+        if (deletedCompany[0]?.stripeSubscriptionId) {
+            await cancelSubscription({
+                subscriptionId: deletedCompany[0].stripeSubscriptionId,
+            });
         }
 
         return deletedCompany;
