@@ -136,7 +136,7 @@ export const cancelSubscriptionController = async (req: Request, res: Response):
 
         await db.update(company)
             .set({
-                subscriptionStatus: subscription.status,
+                subscriptionStatus: 'canceled',
                 updatedAt: new Date(),
             })
             .where(eq(company.id, companyData.id));

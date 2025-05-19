@@ -76,9 +76,9 @@ export const getCompanyStatistics = async (): Promise<CompanyStats> => {
     };
 
     companies.forEach(c => {
-        if (c.subscriptionStatus === 'ACTIVE') subscriptionStats.active++;
-        if (c.subscriptionStatus === 'EXPIRED') subscriptionStats.expired++;
-        if (c.subscriptionStatus === 'CANCELLED') subscriptionStats.cancelled++;
+        if (c.subscriptionStatus?.toLowerCase() === 'active') subscriptionStats.active++;
+        if (c.subscriptionStatus?.toLowerCase() === 'expired') subscriptionStats.expired++;
+        if (c.subscriptionStatus?.toLowerCase() === 'canceled') subscriptionStats.cancelled++;
         
         if (c.currentPlanId) {
             subscriptionStats.byPlan[c.currentPlanId] = (subscriptionStats.byPlan[c.currentPlanId] || 0) + 1;
