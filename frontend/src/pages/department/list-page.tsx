@@ -156,8 +156,11 @@ const DepartmentListPage: React.FC = () => {
             const payLimit = payLimits.find((limit): limit is PayLimitResponse => 
                 limit !== null && limit.departmentId === dept.departmentId
             );
-            const departmentTotalPayroll = departmentPayrolls[dept.departmentName] || 0;
+            const departmentTotalPayroll = (departmentPayrolls[dept.departmentName] || 0) / 100;
             const exceedsPayLimit = payLimit && departmentTotalPayroll > payLimit.limit;
+
+            console.log(departmentTotalPayroll);
+            console.log(payLimit);
             
             return (
                 <React.Fragment key={dept.departmentId}>
@@ -205,7 +208,7 @@ const DepartmentListPage: React.FC = () => {
                                     <AlertCircle className="h-4 w-4" />
                                     <AlertTitle>Pay Limit Exceeded</AlertTitle>
                                     <AlertDescription>
-                                        Total payroll ({(departmentTotalPayroll/100).toLocaleString()}) exceeds the pay limit ({payLimit?.limit.toLocaleString()}) for {dept.departmentName}
+                                        Total payroll ({(departmentTotalPayroll).toLocaleString()}) exceeds the pay limit ({payLimit?.limit.toLocaleString()}) for {dept.departmentName}
                                     </AlertDescription>
                                 </Alert>
                             </TableCell>
