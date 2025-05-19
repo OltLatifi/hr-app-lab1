@@ -5,10 +5,9 @@ import {
   date,
   integer,
   timestamp,
-  primaryKey,
   text,
   AnyPgColumn,
-  boolean,
+  index,
 } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
@@ -20,7 +19,10 @@ export const users = pgTable("user", {
   roleId: integer('role_id')
     .notNull()
     .references(() => roles.id, { onDelete: 'cascade' }),
-});
+}, (table) => ({
+  emailIdx: index('user_email_idx').on(table.email),
+  roleIdIdx: index('user_role_id_idx').on(table.roleId),
+}));
 
 export const company = pgTable('company', {
   id: serial('id').primaryKey(),
@@ -33,7 +35,9 @@ export const company = pgTable('company', {
   currentPlanId: varchar('current_plan_id', { length: 255 }),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
-});
+}, (table) => ({
+  adminIdIdx: index('company_admin_id_idx').on(table.adminId),
+}));
 
 export const companyRelations = relations(company, ({ one }) => ({
   admin: one(users, {
@@ -65,7 +69,14 @@ export const employees = pgTable('employee', {
     .references(() => company.id, { onDelete: 'cascade' }),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
-});
+}, (table) => ({
+  emailIdx: index('employee_email_idx').on(table.email),
+  jobTitleIdIdx: index('employee_job_title_id_idx').on(table.jobTitleId),
+  departmentIdIdx: index('employee_department_id_idx').on(table.departmentId),
+  managerIdIdx: index('employee_manager_id_idx').on(table.managerId),
+  employmentStatusIdIdx: index('employee_employment_status_id_idx').on(table.employmentStatusId),
+  companyIdIdx: index('employee_company_id_idx').on(table.companyId),
+}));
 
 export const employeesRelations = relations(employees, ({ one, many }) => ({
   jobTitle: one(jobTitles, {
@@ -87,11 +98,9 @@ export const employeesRelations = relations(employees, ({ one, many }) => ({
     fields: [employees.employmentStatusId],
     references: [employmentStatuses.id],
   }),
-  attendanceRecords: many(attendance),
   leaveRequests: many(leaveRequests),
   payrollRecords: many(payroll),
   employeeBenefits: many(employeeBenefits),
-  performanceReviews: many(performanceReviews),
   employeeTraining: many(employeeTraining),
   user: one(users, {
     fields: [employees.id],
@@ -163,34 +172,6 @@ export const employmentStatusesRelations = relations(
   }),
 );
 
-// Attendance
-export const attendance = pgTable('attendance', {
-  id: serial('id').primaryKey(),
-  employeeId: integer('employee_id')
-    .notNull()
-    .references(() => employees.id, { onDelete: 'cascade' }),
-  recordDate: date('record_date').notNull(),
-  checkInTime: timestamp('check_in_time'),
-  checkOutTime: timestamp('check_out_time'),
-  status: varchar('status', { length: 50 }),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull(),
-  companyId: integer('company_id')
-    .notNull()
-    .references(() => company.id, { onDelete: 'cascade' }),
-});
-
-export const attendanceRelations = relations(attendance, ({ one }) => ({
-  employee: one(employees, {
-    fields: [attendance.employeeId],
-    references: [employees.id],
-  }),
-  company: one(company, {
-    fields: [attendance.companyId],
-    references: [company.id],
-  }),
-}));
-
 // LeaveRequests
 export const leaveRequests = pgTable('leaverequest', {
   id: serial('id').primaryKey(),
@@ -208,7 +189,11 @@ export const leaveRequests = pgTable('leaverequest', {
   companyId: integer('company_id')
     .notNull()
     .references(() => company.id, { onDelete: 'cascade' }),
-});
+}, (table) => ({
+  employeeIdIdx: index('leave_request_employee_id_idx').on(table.employeeId),
+  leaveTypeIdIdx: index('leave_request_leave_type_id_idx').on(table.leaveTypeId),
+  companyIdIdx: index('leave_request_company_id_idx').on(table.companyId),
+}));
 
 export const leaveRequestsRelations = relations(leaveRequests, ({ one }) => ({
   employee: one(employees, {
@@ -259,7 +244,10 @@ export const payroll = pgTable('payroll', {
   companyId: integer('company_id')
     .notNull()
     .references(() => company.id, { onDelete: 'cascade' }),
-});
+}, (table) => ({
+  employeeIdIdx: index('payroll_employee_id_idx').on(table.employeeId),
+  companyIdIdx: index('payroll_company_id_idx').on(table.companyId),
+}));
 
 export const payrollRelations = relations(payroll, ({ one }) => ({
   employee: one(employees, {
@@ -342,35 +330,6 @@ export const employeeBenefitsRelations = relations(employeeBenefits, ({ one }) =
     references: [company.id],
   }),
 }));
-
-// PerformanceReviews
-export const performanceReviews = pgTable('performancereview', {
-  id: serial('id').primaryKey(),
-  employeeId: integer('employee_id')
-    .notNull()
-    .references(() => employees.id, { onDelete: 'cascade' }),
-  reviewDate: date('review_date').notNull(),
-  overallRating: integer('overall_rating'),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull(),
-  companyId: integer('company_id')
-    .notNull()
-    .references(() => company.id, { onDelete: 'cascade' }),
-});
-
-export const performanceReviewsRelations = relations(
-  performanceReviews,
-  ({ one }) => ({
-    employee: one(employees, {
-      fields: [performanceReviews.employeeId],
-      references: [employees.id],
-    }),
-    company: one(company, {
-      fields: [performanceReviews.companyId],
-      references: [company.id],
-    }),
-  }),
-);
 
 // TrainingPrograms
 export const trainingPrograms = pgTable('trainingprogram', {
